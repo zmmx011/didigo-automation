@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workbook>
+	<worksheet name="Sheet1" idx="0">
+		<loop startRow="2" endRow="2" items="items" var="customer" varType="com.invenia.excel.converter.dto.Customer">
+			<section startRow="2" endRow="2">
+				<mapping row="2" col="0">customer.custName</mapping>
+			</section>
+			<loopbreakcondition>
+				<rowcheck offset="0"/>
+			</loopbreakcondition>
+		</loop>
+	</worksheet>
+</workbook>

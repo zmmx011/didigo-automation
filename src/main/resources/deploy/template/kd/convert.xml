@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workbook>
+	<worksheet name="Sheet1" idx="0">
+		<section startRow="0" endRow="2"/>
+		<loop startRow="3" endRow="3" items="items" var="item" varType="com.invenia.excel.converter.dto.Item">
+			<section startRow="3" endRow="3">
+				<mapping row="3" col="2">item.orderDate</mapping>
+				<mapping row="3" col="4">item.itemClassSName</mapping>
+				<mapping row="3" col="11">item.itemName</mapping>
+				<mapping row="3" col="12">item.spec</mapping>
+				<mapping row="3" col="13">item.itemNo</mapping>
+				<mapping row="3" col="14">item.smInOutKindName</mapping>
+				<mapping row="3" col="19">item.unitName</mapping>
+				<mapping row="3" col="20">item.assetName</mapping>
+				<mapping row="3" col="21">item.qty</mapping>
+				<mapping row="3" col="22">item.price</mapping>
+				<mapping row="3" col="24">item.isInclusedVat</mapping>
+				<mapping row="3" col="32">item.whName</mapping>
+				<mapping row="3" col="33">item.remarkM</mapping>
+				<mapping row="3" col="34">item.remark</mapping>
+			</section>
+			<loopbreakcondition>
+				<rowcheck offset="0"/>
+			</loopbreakcondition>
+		</loop>
+	</worksheet>
+</workbook>

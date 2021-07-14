@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+  <meta charset = "utf-8">
+  <link href = "https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel = "stylesheet">
+  <link href = "mdi/css/materialdesignicons.min.css" rel = "stylesheet">
+  <link href = "vuetify/vuetify.min.css" rel = "stylesheet">
+  <meta name = "viewport" content = "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, minimal-ui">
+  <title></title>
+</head>
+<body>
+<div id = "app">
+  <v-app>
+    <v-main>
+      <v-container style = "height: 80vh">
+        <v-data-table class = "elevation-1" :headers = "headers" :items = "items" item-key = "jobExecutionId"
+                      sort-by = "createTime" sort-desc height = "80vh" :expanded.sync = "expanded" single-expand>
+          <template v-slot:item = "{ item, expand, isExpanded }">
+            <tr>
+              <td class = "text-center">{{item.jobExecutionId}}</td>
+              <td class = "text-center">{{item.jobInstanceId.jobName}}</td>
+              <td class = "text-center">{{item.createTime}}</td>
+              <td class = "text-center">{{item.startTime}}</td>
+              <td class = "text-center">{{item.endTime}}</td>
+              <td class = "text-center">{{statusTranslate(item.status)}}</td>
+              <!--              <td class = "text-center">
+                              <template v-for = "step in item.batchStepExecutions">
+                                <v-chip v-if = "step.exitMessage === ''" class = "ma-1" :color = "getStepColor(step.exitCode)" outlined label>
+                                  {{step.stepName}}
+                                </v-chip>
+                                <v-chip v-else class = "ma-1" :color = "getStepColor(step.exitCode)" outlined label @click.stop = "showCustomerErrors(step)">
+                                  {{step.stepName}}
+                                </v-chip>
+                              </template>
+                            </td>-->
+              <td class = "text-center">
+                <v-chip v-if = "isPurchaseConvertComplete(item.batchStepExecutions)" class = "ma-1"
+                        color = "success" outlined label @click.stop = "downloadPurchaseOrder(item.jobExecutionId)">
+                  다운로드
+                </v-chip>
+              </td>
+              <td>
+                <v-btn @click="expand(!isExpanded)">Expand</v-btn>
+              </td>
+            </tr>
+          </template>
+          <template v-slot:top>
+            <v-toolbar flat>
+              <v-toolbar-title>업무 자동화</v-toolbar-title>
+              <v-spacer></v-spacer>
+              <v-btn class = "mx-2" tile color = "success" v-for = "(button, index) in buttons" :key = "button.name"
+                     @click = "executeJob(button.api, index)">
+                <v-progress-circular v-if = "button.progress" indeterminate color = "white"></v-progress-circular>
+                <template v-else>{{button.name}}</template>
+              </v-btn>
+            </v-toolbar>
+          </template>
+          <template v-slot:expanded-item = "{ headers, item }">
+            <td :colspan = "headers.length" class = "pa-0">
+              <v-stepper alt-labels>
+                <v-stepper-header>
+                  <template v-for = "(step, index) in getJobSteps(item.jobInstanceId.jobName)">
+                    <v-stepper-step :step = "index + 1" style = "font-size:14px; cursor: pointer;"
+                                    :complete = "isStepCompleted(item.batchStepExecutions, index)"
+                                    :rules="[() => isStepError(item.batchStepExecutions, index)]"
+                                    @click = "!isStepError(item.batchStepExecutions, index) ?
+                                    showErrors(item.batchStepExecutions[index]) : false"
+                    >
+                      {{step}}
+                    </v-stepper-step>
+                    <v-divider v-if="index + 1 < getJobSteps(item.jobInstanceId.jobName).length"></v-divider>
+                  </template>
+                </v-stepper-header>
+              </v-stepper>
+            </td>
+          </template>
+        </v-data-table>
+        <v-dialog v-model = "dialog.show" width = "500">
+          <v-card>
+            <v-card-title>{{dialog.title}}</v-card-title>
+            <v-card-text style = "white-space: pre-line">
+              {{dialog.message}}
+            </v-card-text>
+            <v-card-actions v-if = "isCustomersDownload">
+              <v-spacer></v-spacer>
+              <v-btn color = "primary" text @click = "downloadUnregisteredCustomers">
+                미등록 거래처 목록 다운로드
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-container>
+    </v-main>
+  </v-app>
+</div>
+
+<script src = "vue/vue.js"></script>
+<script src = "vuetify/vuetify.min.js"></script>
+<script src = "axios/dist/axios.min.js"></script>
+<script src = "fileSaver/FileSaver.min.js"></script>
+<script>
+  new Vue({
+    el: '#app',
+    vuetify: new Vuetify(),
+    created: function () {
+      this.getHistoryList();
+    },
+    computed: {
+      isCustomersDownload() {
+        let result = false;
+        if (this.dialog.message !== null) {
+          result = this.dialog.message.includes('미등록')
+        }
+        return result
+      },
+    },
+    methods: {
+      executeJob(api, index) {
+        this.buttons[index].progress = true;
+        axios.post('api/run/' + api)
+          .then((response) => {
+            console.log(response);
+            this.buttons[index].progress = false;
+            this.getHistoryList();
+            this.showDialog('작업 완료', '작업 완료 되었습니다.');
+            setTimeout(() => this.dialog.show = false, 5000);
+          })
+          .catch(error => this.showDialog('에러 상세 정보', error));
+      },
+      isStepCompleted(steps, index) {
+        const step = steps[index];
+        if (step === undefined) {
+          return false;
+        } else {
+          return steps[index].exitMessage === '';
+        }
+      },
+      isStepError(steps, index) {
+        const step = steps[index];
+        if (step === undefined) {
+          return true;
+        } else {
+          return steps[index].exitMessage === '';
+        }
+      },
+      isPurchaseConvertComplete(steps) {
+        let result = false;
+        steps.forEach(step => {
+          if (step.stepName === '발주 변환') {
+            result = step.exitCode === 'COMPLETED'
+          }
+        });
+        return result;
+      },
+      getHistoryList() {
+        axios.defaults.baseURL = 'http://100.100.15.82:8080/';
+        axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+        axios.get('api/batchJobExecutions?page=0&size=1000&sort=createTime,desc')
+          .then(result => this.items = result.data._embedded.batchJobExecutions)
+          .catch(error => this.showDialog('에러 상세 정보', error));
+      },
+      getStepColor(exitCode) {
+        if (exitCode === 'COMPLETED') {
+          return 'green';
+        } else if (exitCode === 'FAILED') {
+          return 'red';
+        } else {
+          return 'orange'
+        }
+      },
+      getJobExecutionIdFromStep(step) {
+        let url = step._links.jobExecutionId.href;
+        return url.substring(url.lastIndexOf("/") + 1);
+        
+      },
+      showDialog(title, message) {
+        this.dialog.title = title;
+        this.dialog.message = message;
+        this.dialog.show = true;
+      },
+      showErrors(step) {
+        this.dialog.jobExecutionId = this.getJobExecutionIdFromStep(step);
+        this.showDialog('에러 상세 정보', step.exitMessage.replace(':', '\n'));
+      },
+      downloadPurchaseOrder(id) {
+        axios.get('api/purchase-order/' + id, {responseType: 'blob'})
+          .then(response => this.saveFile(response, '구매 발주.zip'))
+          .catch(response => console.error('Could not Download the Excel report from the backend.', response));
+      },
+      downloadUnregisteredCustomers() {
+        axios.get('api/unregistered-customer/' + this.dialog.jobExecutionId, {responseType: 'blob'})
+          .then(response => this.saveFile(response, '미등록 거래처.xlsx'))
+          .catch(response => console.error('Could not Download the Excel report from the backend.', response));
+      },
+      saveFile(response, defaultFileName) {
+        const fileNameHeader = 'content-disposition';
+        const suggestedFileName = response.headers[fileNameHeader];
+        const effectiveFileName = (suggestedFileName === undefined ? defaultFileName
+          : suggestedFileName.split('"')[1]);
+        console.log('Received header [' + fileNameHeader + ']: ' + suggestedFileName
+          + ', effective fileName: ' + effectiveFileName);
+        
+        saveAs(response.data, effectiveFileName);
+      },
+      statusTranslate(status) {
+        switch (status) {
+          case 'COMPLETED':
+            return '완료'
+          case 'FAILED':
+            return '실패'
+          default :
+            return status
+        }
+      },
+      getJobSteps(jobName) {
+        return this.jobSteps.find(x => x.jobName === jobName).steps
+      }
+    },
+    data() {
+      return {
+        buttons: [
+          {name: '전체', api: 'all', progress: false},
+          {name: '품목', api: 'item', progress: false},
+          {name: '거래처', api: 'customer', progress: false},
+          {name: '수주', api: 'contract', progress: false},
+          {name: '발주', api: 'purchase', progress: false}
+        ],
+        jobSteps: [
+          {
+            jobName: '전체',
+            steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '발주 변환', '품목 업로드', '수주 업로드'],
+          },
+          {
+            jobName: '품목 등록',
+            steps: ['초기화', '품목 다운로드', '데이터 수집', '품목 변환', '품목 업로드'],
+          },
+          {
+            jobName: '거래처 확인',
+            steps: ['초기화', '거래처 다운로드', '데이터 수집', '거래처 체크'],
+          },
+          {
+            jobName: '수주 등록',
+            steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '품목 업로드', '수주 업로드'],
+          },
+          {
+            jobName: '발주 변환',
+            steps: ['초기화', '품목 다운로드', '데이터 수집', '발주 변환'],
+          },
+        ],
+        dialog: {
+          show: false,
+          title: '',
+          message: '',
+          jobExecutionId: ''
+        },
+        items: [],
+        expanded: [],
+        headers: [
+          {text: '배치 번호', align: 'center'},
+          {text: '배치 종류', align: 'center'},
+          {text: '생성 시간', align: 'center'},
+          {text: '시작 시간', align: 'center'},
+          {text: '종료 시간', align: 'center'},
+          {text: '실행 결과', align: 'center'},
+          {text: '발주 데이터', align: 'center', sortable: false},
+          { text: '스텝', value: 'data-table-expand' , sortable: false},
+        ],
+      }
+    }
+    ,
+  })
+</script>
+</body>
+</html>
+

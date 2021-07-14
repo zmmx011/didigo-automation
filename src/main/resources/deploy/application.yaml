@@ -1,0 +1,75 @@
+# Server
+server:
+  port: 8080
+
+# Spring
+spring:
+  data:
+    rest:
+      base-path: /api
+  batch:
+    job:
+      enabled: false
+  datasource:
+    hikari:
+      driver-class-name: org.h2.Driver
+      jdbc-url: jdbc:h2:file:C:/excel/h2;AUTO_SERVER=TRUE;DB_CLOSE_ON_EXIT=FALSE
+      username: sa
+      password:
+  h2:
+    console:
+      enabled: true
+      path: /h2
+      settings:
+        web-allow-others: true
+  jpa:
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        type: trace
+        format_sql: true
+  output:
+    ansi:
+      enabled: always
+
+# Logging
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: debug
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE
+  pattern:
+    console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}){blue} %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
+
+# Convert
+convert:
+  config:
+    chrome-download-path: "C:/Users/chatServer/Downloads/"
+    ie-download-path: "C:/Users/chatServer/Downloads/"
+    backup-path: "C:/excel/backup/"
+    template-path: "C:/excel/template/"
+    output-path: "C:/excel/output/"
+    customer-file-name: "customer.xlsx"
+    item-file-name: "item.xlsx"
+    contract-order-file-name: "contractorder.xlsx"
+    purchase-order-file-name: "purchaseorder.xlsx"
+
+# Batch
+batch:
+  config:
+    runCozy: false
+    runKd: false
+    runMall : true
+    didigoWebUrl: "https://mfg.systemevererp.com/"
+    cozyWebUrl: "http://100.100.16.16:9997"
+    kdWebUrl: "https://mfg.systemevererp.com/"
+    mallWebUrl: "https://admin.didigomall.com:444/"
+
+
