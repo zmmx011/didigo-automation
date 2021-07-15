@@ -35,6 +35,18 @@ or use IDE Gradle Plugin
 
 > 빌드 시 resources의 application.yaml 파일과 deploy 폴더는 제외 됩니다.
 
+### Excel Convert
+Jxls를 이용하여 수행 됩니다. 
+
+변환에 필요한 템플릿과 매핑 파일은 ``/resources/deploy/template/`` 에 있습니다.
+
+### Automations
+Selenium을 이용하여 수행 됩니다.
+
+브라우저 드라이버는 ``/resources/deploy/driver/`` 에 있습니다.
+
+드라이버는 서버 브라우저 환경에 맞게 구성해야 합니다.
+
 ### Front-end
 단일 페이지로 구성되어 있으며 위치는 ``/resources/static/index.html`` 입니다.
 
@@ -55,3 +67,5 @@ or use IDE Gradle Plugin
 3. ``application.yaml`` 파일의 설정 내용을 확인 합니다.
 4. 실행 ``convert.bat``
 5. 사이트 접속 확인 http://localhost:8080
+
+zulu11 jre를 ``resources/deploy`` 폴더에 내장하고 있습니다. 
