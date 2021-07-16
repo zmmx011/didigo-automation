@@ -27,9 +27,6 @@ public class Item {
 	private String purAmt; // 판매 금액
 	private String curAmt; // 판매 금액
 	private String whName; // 창고
-	private String remark; // 비고
-
-
 
 	@Override
 	public boolean equals(Object o) {

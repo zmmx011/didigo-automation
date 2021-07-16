@@ -4,6 +4,14 @@ server:
 
 # Spring
 spring:
+  mail:
+    host: 100.100.10.142
+    username: damu@inveniacorp.com
+    password: password
+    properties:
+      mail:
+        smtp:
+          auth: true
   data:
     rest:
       base-path: /api
@@ -40,11 +48,11 @@ logging:
   level:
     org:
       hibernate:
-        SQL: debug
+        SQL: info
         type:
           descriptor:
             sql:
-              BasicBinder: TRACE
+              BasicBinder: info
   pattern:
     console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}){blue} %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
 

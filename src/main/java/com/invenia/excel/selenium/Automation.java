@@ -14,6 +14,7 @@ import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.stereotype.Component;
 
@@ -230,6 +231,36 @@ public class Automation {
 		driver.switchTo().defaultContent();
 	}
 
+	public void runContractOrderDownload() throws InterruptedException {
+		// 영업관리
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']"))).click();
+
+		// 수주관리 - 수주 - 수주입력업로드
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("5"))).click();
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("29"))).click();
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500586"))).click();
+		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500586_iframe")));
+
+		// 사업단위
+		new Select(driver.findElementById("txtBizUnitName_ul")).selectByVisibleText("디디고");
+
+		// 기간
+		driver.executeScript("return document.getElementById('datOrderDateFr_dat').value = '" +
+				LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
+
+
+		Thread.sleep(50000);
+
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
+
+		// 엑셀 다운로드
+		wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
+		actions.contextClick(driver.findElementById("SS1_btnSheetSetting")).perform();
+		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+
+		driver.switchTo().defaultContent();
+	}
+
 	public void runCustomerDownload(String url, boolean login) {
 		if (login) {
 			runErpLogin(url);
@@ -270,7 +301,7 @@ public class Automation {
 			robot.keyPress(KeyEvent.VK_ESCAPE);
 			Thread.sleep(2000);
 			driver.findElementById("FrmWDAItemUpload_FileDialog_file")
-					.sendKeys(config.getOutputPath() + siteName + "/" + config.getItemFileName());
+					.sendKeys(config.getOutputPath() + siteName + "/" + config.getItemCodeFileName());
 			driver.findElementById("btnGetData_btn").click();
 			Thread.sleep(5000);
 			wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
@@ -282,8 +313,6 @@ public class Automation {
 	}
 
 	public void runContractOrderUpload(String siteName) throws AWTException, InterruptedException {
-		log.info("runContractOrderUpload");
-		log.info(config.getConvertResult().get(siteName).toString());
 		if (config.getConvertResult().get(siteName).getContractOrderResult() > 0) {
 			Robot robot = new Robot();
 

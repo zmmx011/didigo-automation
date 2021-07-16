@@ -5,16 +5,16 @@
 		<loop startRow="1" endRow="1" items="items" var="item" varType="com.invenia.excel.converter.dto.Item">
 			<section startRow="1" endRow="1">
 				<mapping row="1" col="0">item.itemClassSName</mapping>
+				<mapping row="1" col="2">item.remarkM</mapping>
 				<mapping row="1" col="3">item.orderDate</mapping>
 				<mapping row="1" col="6">item.itemNo</mapping>
 				<mapping row="1" col="7">item.itemName</mapping>
 				<mapping row="1" col="8">item.qty</mapping>
 				<mapping row="1" col="9">item.price</mapping>
+				<mapping row="1" col="34">item.custName</mapping>
 				<mapping row="1" col="42">item.deliveryDate</mapping>
 				<mapping row="1" col="44">item.dvPlaceName</mapping>
-				<mapping row="1" col="47">item.remarkM</mapping>
 				<mapping row="1" col="52">item.isInclusedVat</mapping>
-				<mapping row="1" col="53">item.custName</mapping>
 			</section>
 			<loopbreakcondition>
 				<rowcheck offset="0"/>

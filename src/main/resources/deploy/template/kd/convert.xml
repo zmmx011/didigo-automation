@@ -17,7 +17,6 @@
 				<mapping row="3" col="24">item.isInclusedVat</mapping>
 				<mapping row="3" col="32">item.whName</mapping>
 				<mapping row="3" col="33">item.remarkM</mapping>
-				<mapping row="3" col="34">item.remark</mapping>
 			</section>
 			<loopbreakcondition>
 				<rowcheck offset="0"/>

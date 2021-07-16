@@ -58,6 +58,7 @@ public class BatchJob {
 				.start(step.initStep())
 				.next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.customerDownloadStep(false)).on(ExitStatus.FAILED.getExitCode()).fail()
+				.next(step.contractOrderDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.siteDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.customerCheckStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.itemCodeConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
@@ -89,6 +90,7 @@ public class BatchJob {
 				.start(step.initStep())
 				.next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.customerDownloadStep(false)).on(ExitStatus.FAILED.getExitCode()).fail()
+				.next(step.contractOrderDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.siteDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.customerCheckStep()).on(ExitStatus.FAILED.getExitCode()).fail()
 				.next(step.itemCodeConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
@@ -105,7 +107,9 @@ public class BatchJob {
 		public void beforeJob(JobExecution jobExecution) {
 			automation.setup();
 			batchConfig.setTabIndex(0);
-			log.info("runCozy : " + batchConfig.getRunCozy() + "runKd : " + batchConfig.getRunKd() + "runMall : " + batchConfig.getRunMall());
+			log.info("runCozy : " + batchConfig.getRunCozy() +
+					" runKd : " + batchConfig.getRunKd() +
+					" runMall : " + batchConfig.getRunMall());
 			log.info(jobExecution.getJobInstance().getJobName() + " started");
 		}
 		@Override

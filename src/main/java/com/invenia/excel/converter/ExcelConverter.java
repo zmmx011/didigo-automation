@@ -45,7 +45,7 @@ public class ExcelConverter {
 	public void itemCodeConvert(String siteName) throws Exception {
 		// 품목 엑셀 읽기
 		List<ItemCode> itemCodes = readExcel(config.getTemplatePath() + "systemever/itemcode.xml",
-				config.getItemFilePath());
+				config.getItemCodeFilePath());
 		// 품목 중복 제거
 		List<Item> distinctItems = Objects.requireNonNull(readItems(siteName))
 				.stream()
@@ -53,14 +53,22 @@ public class ExcelConverter {
 				.distinct()
 				.collect(Collectors.toList());
 		// 품목 엑셀 생성
-		int size = makeExcel(distinctItems, Paths.get(getTemplateSitePath(siteName) + config.getItemFileName()),
-				Paths.get(getOutputSitePath(siteName) + config.getItemFileName()));
+		int size = makeExcel(distinctItems, Paths.get(getTemplateSitePath(siteName) + config.getItemCodeFileName()),
+				Paths.get(getOutputSitePath(siteName) + config.getItemCodeFileName()));
 		config.getConvertResult().get(siteName).setItemCodeResult(size);
 	}
 
 	public void contractOrderConvert(String siteName) throws Exception {
+		// 수주 엑셀 읽기
+		List<Item> orders = readExcel(config.getTemplatePath() + "systemever/contractorder.xml",
+				config.getContractOrderFilePath());
+		// 수주 중복 제거
+		List<Item> distinctOrders = Objects.requireNonNull(readItems(siteName))
+				.stream()
+				.filter(x -> orders.stream().noneMatch(y -> x.getRemarkM().equals(y.getRemarkM())))
+				.collect(Collectors.toList());
 		// 수주 엑셀 생성
-		int size = makeExcel(readItems(siteName), Paths.get(getTemplateSitePath(siteName) + config.getContractOrderFileName()),
+		int size = makeExcel(distinctOrders, Paths.get(getTemplateSitePath(siteName) + config.getContractOrderFileName()),
 				Paths.get(getOutputSitePath(siteName) + config.getContractOrderFileName()));
 		config.getConvertResult().get(siteName).setContractOrderResult(size);
 	}

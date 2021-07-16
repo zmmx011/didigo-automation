@@ -24,22 +24,7 @@ class ExcelConvertTests {
 	private ExcelConverter excelConverter;
 
 	@Test
-	void clearDirectory() throws Exception {
-		try (Stream<Path> walk = Files.walk(Paths.get("C:/excel/output/"))) {
-			walk.sorted(Comparator.reverseOrder())
-					.forEach(x-> {
-						try {
-							Files.delete(x);
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
-					});
-		}
-	}
-
-	@Test
-	void a() {
-		System.out.println(LocalDate.now().minusDays(1));
-		System.out.println(LocalDate.now().minusDays(8));
+	void 수주변환() throws Exception {
+		excelConverter.contractOrderConvert("mall");
 	}
 }

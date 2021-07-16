@@ -43,6 +43,19 @@ public class BatchStep {
 				}).build();
 	}
 
+	public Step contractOrderDownloadStep() {
+		return stepBuilderFactory.get("수주 다운로드")
+				.tasklet((contribution, chunkContext) -> {
+					try {
+						automation.runContractOrderDownload();
+					} catch (Exception e) {
+						log.error(e.getMessage(), e);
+						contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+					}
+					return RepeatStatus.FINISHED;
+				}).build();
+	}
+
 	public Step customerDownloadStep(boolean login) {
 		return stepBuilderFactory.get("거래처 다운로드")
 				.tasklet((contribution, chunkContext) -> {
@@ -118,17 +131,10 @@ public class BatchStep {
 				.build();
 	}
 
-	public Step demoStep() {
-		return stepBuilderFactory.get("데모")
-				.tasklet((contribution, chunkContext) -> {
-					try {
-						excelConverter.demoFileCopy();
-					} catch (Exception e) {
-						log.error(e.getMessage(), e);
-						contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
-					}
-					return RepeatStatus.FINISHED;
-				}).build();
+	public Step sendMailStep() {
+		return stepBuilderFactory.get("메일 발송")
+				.tasklet((contribution, chunkContext) -> automationRunCheck(Automation::runContractOrderUpload, contribution))
+				.build();
 	}
 
 	private RepeatStatus convertRunCheck(ThrowsBiConsumer<ExcelConverter, String> func, StepContribution contribution) {
