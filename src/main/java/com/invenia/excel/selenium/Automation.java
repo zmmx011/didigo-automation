@@ -248,9 +248,6 @@ public class Automation {
 		driver.executeScript("return document.getElementById('datOrderDateFr_dat').value = '" +
 				LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
 
-
-		Thread.sleep(50000);
-
 		wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
 		// 엑셀 다운로드

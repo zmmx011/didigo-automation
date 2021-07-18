@@ -78,7 +78,6 @@ public class BatchStep {
 						if (batchConfig.getRunKd()) {
 							automation.newTab();
 							automation.changeTab(batchConfig.getTabIndex() + 1);
-
 							automation.runKdErpDownload(fromDate, toDate, batchConfig.getKdWebUrl());
 						}
 						if (batchConfig.getRunCozy()) {

@@ -1,4 +1,4 @@
-package com.invenia.excel.web;
+package com.invenia.excel.web.config;
 
 import org.h2.tools.Server;
 import org.springframework.context.annotation.Bean;
