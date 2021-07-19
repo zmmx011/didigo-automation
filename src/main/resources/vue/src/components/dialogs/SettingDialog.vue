@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model = "dialog" max-width = "600px">
+  <v-dialog v-model = "dialog" max-width = "1200px">
     <template v-slot:activator = "{ on, attrs }">
       <v-btn color = "blue-grey" class = "ma-2 white--text" v-bind = "attrs" v-on = "on">
         배치 설정
@@ -13,15 +13,10 @@
       <v-card-text>
         <v-container>
           <v-row>
-            <v-col cols = "12" sm = "6" md = "4">
-              <VueCronEditorBuefy v-model="cronExpression"/>
+            <v-col cols = "12">
+              <VueCronEditorBuefy v-model="cronExpression" cronSyntax="quartz" :visibleTabs="visibleTab" locale="ko"
+                                  :custom-locales="i18n"/>
               {{cronExpression}}
-            </v-col>
-            <v-col cols = "12" sm = "6" md = "4">
-              <v-text-field label = "Legal middle name" hint = "example of helper text only on focus"></v-text-field>
-            </v-col>
-            <v-col cols = "12" sm = "6" md = "4">
-              <v-text-field label = "Legal last name*" hint = "example of persistent helper text" persistent-hint required></v-text-field>
             </v-col>
             <v-col cols = "12">
               <v-text-field label = "Email*" required></v-text-field>
@@ -62,7 +57,37 @@ export default {
   data() {
     return {
       dialog: false,
-      cronExpression: "*/1 * * * *"
+      cronExpression: "*/1 * * * *",
+      visibleTab: ['minutes', 'hourly', 'daily', 'weekly', 'monthly'],
+      i18n: {
+        ko: {
+          every: "매",
+          mminutes: "분 마다",
+          hoursOnMinute: "시간 마다",
+          daysAt: "일 마다",
+          at: "에",
+          onThe: "매월",
+          dayOfEvery: "day, of every",
+          monthsAt: "month(s), at",
+          everyDay: "매주",
+          mon: "월",
+          tue: "화",
+          wed: "수",
+          thu: "목",
+          fri: "금",
+          sat: "토",
+          sun: "일",
+          hasToBeBetween: "Has to be between",
+          and: "and",
+          minutes: "MINUTES",
+          hourly: "HOURLY",
+          daily: "DAILY",
+          weekly: "WEEKLY",
+          monthly: "MONTHLY",
+          advanced: "ADVANCED",
+          cronExpression: "cron expression:"
+        }
+      },
     }
   }
 }
