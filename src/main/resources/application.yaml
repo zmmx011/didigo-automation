@@ -80,4 +80,5 @@ batch:
     kdWebUrl: "https://mfg.systemevererp.com/"
     mallWebUrl: "https://admin.didigomall.com:444/"
 
-
+console:
+  fetch: 5000

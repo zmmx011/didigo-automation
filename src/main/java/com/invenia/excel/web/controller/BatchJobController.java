@@ -30,6 +30,11 @@ public class BatchJobController {
 	private final BatchJobLauncher launcher;
 	private final ConvertConfig config;
 
+	@GetMapping(value = "api/test/change")
+	public ResponseEntity<String> change() {
+		return ResponseEntity.ok().build();
+	}
+
 	@PostMapping(value = "api/run/all")
 	public ResponseEntity<String> runAll() {
 		launcher.executeJob(BatchJob::allProcessJob);
