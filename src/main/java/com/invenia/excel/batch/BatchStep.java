@@ -47,7 +47,7 @@ public class BatchStep {
           try {
             automation.runItemCodeDownload(batchConfig.getDidigoWebUrl(), login);
           } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
             contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
           }
           return RepeatStatus.FINISHED;
@@ -60,7 +60,7 @@ public class BatchStep {
           try {
             automation.runContractOrderDownload();
           } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
             contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
           }
           return RepeatStatus.FINISHED;
@@ -73,7 +73,7 @@ public class BatchStep {
           try {
             automation.runCustomerDownload(batchConfig.getDidigoWebUrl(), login);
           } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
             contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
           }
           return RepeatStatus.FINISHED;
@@ -100,7 +100,7 @@ public class BatchStep {
               automation.runMallDownload(fromDate, toDate, batchConfig.getMallWebUrl());
             }
           } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
             contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
           }
           return RepeatStatus.FINISHED;
@@ -173,7 +173,7 @@ public class BatchStep {
         func.accept(excelConverter, "mall");
       }
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
     }
     return RepeatStatus.FINISHED;
@@ -196,30 +196,31 @@ public class BatchStep {
         func.accept(automation, "mall");
       }
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
     }
     return RepeatStatus.FINISHED;
   }
 
   private Map<String, LocalDate> getPeriod(String type) {
-    Map<String, LocalDate> period = new HashMap<>();
+    Map<String, LocalDate> periodMap = new HashMap<>();
     RunEnvironment env = runEnvironmentRepository.findById(type)
         .orElseThrow(() -> new EntityNotFoundException(type));
     if ("manual".equals(type)) {
-      period.put("fromDate", env.getFromDate());
-      period.put("toDate", env.getToDate());
+      periodMap.put("fromDate", env.getFromDate());
+      periodMap.put("toDate", env.getToDate());
     } else {
       LocalDate today = LocalDate.now();
-      DayOfWeek dayOfWeek = today.getDayOfWeek();
-      if (env.getPeriod() == 1) {
-        period.put("fromDate", today.minusDays(1));
-        period.put("toDate", today.minusDays(1));
+      DayOfWeek todayOfWeek = today.getDayOfWeek();
+      int period = env.getPeriod();
+      if (period == 1) {
+        periodMap.put("fromDate", today.minusDays(1));
+        periodMap.put("toDate", today.minusDays(1));
       } else {
-        period.put("fromDate", today.minusDays(env.getPeriod() + dayOfWeek.getValue()));
-        period.put("toDate", today.minusDays(dayOfWeek.getValue()));
+        periodMap.put("fromDate", today.minusDays(period + todayOfWeek.getValue()));
+        periodMap.put("toDate", today.minusDays(todayOfWeek.getValue()));
       }
     }
-    return period;
+    return periodMap;
   }
 }

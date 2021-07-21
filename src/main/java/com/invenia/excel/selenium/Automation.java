@@ -147,7 +147,7 @@ public class Automation {
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(1000);
     } catch (InterruptedException | AWTException e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
     }
     Thread.sleep(5000);
     ieDriver.close();

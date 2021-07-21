@@ -43,14 +43,11 @@ public class BatchScheduler {
     );
   }
 
-  public void changeCron(String cronExpression) {
+  public void changeCron() {
     if (future != null) {
       future.cancel(true);
     }
     future = null;
-    RunEnvironment environment = getRunEnvironment();
-    environment.setCron(cronExpression);
-    runEnvironmentRepository.save(environment);
     start();
   }
 

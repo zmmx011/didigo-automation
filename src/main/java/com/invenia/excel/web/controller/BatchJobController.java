@@ -4,6 +4,8 @@ import com.invenia.excel.batch.BatchJob;
 import com.invenia.excel.batch.BatchJobLauncher;
 import com.invenia.excel.batch.BatchScheduler;
 import com.invenia.excel.converter.ConvertConfig;
+import com.invenia.excel.web.entity.RunEnvironment;
+import com.invenia.excel.web.repository.RunEnvironmentRepository;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -12,6 +14,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -20,12 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -39,39 +44,41 @@ public class BatchJobController {
   private final BatchJobLauncher launcher;
   private final ConvertConfig config;
   private final BatchScheduler scheduler;
+  private final RunEnvironmentRepository envRepository;
 
   @PutMapping(value = "/settings/batch")
-  public ResponseEntity<String> batchSettings() {
-    scheduler.changeCron("0/1 * * * * *");
-    return ResponseEntity.ok().build();
+  public ResponseEntity<?> batchSettings(@RequestBody RunEnvironment environment) {
+    envRepository.save(environment);
+    scheduler.changeCron();
+    return ResponseEntity.ok().body(environment);
   }
 
   @PostMapping(value = "/run/all")
-  public ResponseEntity<String> runAll() {
+  public ResponseEntity<String> runAll(@RequestBody RunEnvironment environment) {
     launcher.executeJob(BatchJob::allProcessJob, MANUAL_RUN);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/item")
-  public ResponseEntity<String> runItem() {
+  public ResponseEntity<String> runItem(@RequestBody RunEnvironment environment) {
     launcher.executeJob(BatchJob::itemCodeJob, MANUAL_RUN);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/customer")
-  public ResponseEntity<String> runCustomer() {
+  public ResponseEntity<String> runCustomer(@RequestBody RunEnvironment environment) {
     launcher.executeJob(BatchJob::customerCheckJob, MANUAL_RUN);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/contract")
-  public ResponseEntity<String> runContract() {
+  public ResponseEntity<String> runContract(@RequestBody RunEnvironment environment) {
     launcher.executeJob(BatchJob::contractOrderJob, MANUAL_RUN);
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/purchase")
-  public ResponseEntity<String> runPurchase() {
+  public ResponseEntity<String> runPurchase(@RequestBody RunEnvironment environment) {
     launcher.executeJob(BatchJob::purchaseOrderJob, MANUAL_RUN);
     return ResponseEntity.ok().build();
   }
@@ -136,7 +143,7 @@ public class BatchJobController {
         }
       });
     } catch (IOException e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
     }
   }
 }

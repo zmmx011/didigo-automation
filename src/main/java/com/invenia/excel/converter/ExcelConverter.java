@@ -123,11 +123,11 @@ public class ExcelConverter {
             try {
               Files.delete(x);
             } catch (IOException e) {
-              log.error(e.getMessage(), e);
+              log.error(e.getLocalizedMessage(), e);
             }
           });
     } catch (IOException e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       throw e;
     }
     log.info(outputPath + " 삭제 완료");
@@ -152,7 +152,7 @@ public class ExcelConverter {
         JxlsHelper.getInstance().processTemplate(is, os, context);
       }
     } catch (IOException e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       throw e;
     }
     return items.size();
@@ -184,11 +184,11 @@ public class ExcelConverter {
         beans.put("items", items);
         reader.read(xlsInputStream, beans);
       } catch (Exception e) {
-        log.error(e.getMessage(), e);
+        log.error(e.getLocalizedMessage(), e);
         throw e;
       }
     } catch (Exception e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       throw e;
     }
     return items;
@@ -208,7 +208,7 @@ public class ExcelConverter {
       // Output Backup
       fileCopy(Paths.get(config.getOutputPath()), backupPath);
     } catch (IOException e) {
-      log.error(e.getMessage(), e);
+      log.error(e.getLocalizedMessage(), e);
       throw e;
     }
     log.info("파일 백업 완료");
@@ -232,7 +232,7 @@ public class ExcelConverter {
           try {
             Files.move(x, target.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
           } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
           }
         });
   }
@@ -247,7 +247,7 @@ public class ExcelConverter {
           try {
             fileCopy(p, target.resolve(source.relativize(p)));
           } catch (IOException e) {
-            log.error(e.getMessage(), e);
+            log.error(e.getLocalizedMessage(), e);
           }
         });
       }

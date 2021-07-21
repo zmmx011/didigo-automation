@@ -122,7 +122,7 @@ public class BatchJob {
         excelConverter.fileBackup(jobExecution.getId());
         excelConverter.clearOutputPath();
       } catch (IOException e) {
-        log.error(e.getMessage(), e);
+        log.error(e.getLocalizedMessage(), e);
       } finally {
         log.info(jobExecution.getJobInstance().getJobName() + " finished");
       }
