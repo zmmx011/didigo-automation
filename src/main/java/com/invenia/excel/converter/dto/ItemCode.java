@@ -4,15 +4,16 @@ import lombok.Data;
 
 @Data
 public class ItemCode {
-	private String itemCode;
 
-	@Override
-	public boolean equals(Object o) {
-		return itemCode.equals(o.toString());
-	}
+  private String itemCode;
 
-	@Override
-	public int hashCode() {
-		return itemCode != null ? itemCode.hashCode() : 0;
-	}
+  @Override
+  public boolean equals(Object o) {
+    return itemCode.equals(o.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return itemCode != null ? itemCode.hashCode() : 0;
+  }
 }

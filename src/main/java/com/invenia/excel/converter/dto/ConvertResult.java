@@ -4,7 +4,8 @@ import lombok.Data;
 
 @Data
 public class ConvertResult {
-	private int itemCodeResult;
-	private int contractOrderResult;
-	private int purchaseOrderResult;
+
+  private int itemCodeResult;
+  private int contractOrderResult;
+  private int purchaseOrderResult;
 }

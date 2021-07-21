@@ -1,6 +1,6 @@
 package com.invenia.excel;
 
-import com.invenia.excel.batch.BatchConfig;
+import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.converter.ConvertConfig;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
@@ -14,7 +14,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableScheduling
 @SpringBootApplication
 public class ExcelApplication {
-	public static void main(String[] args) {
-		SpringApplication.run(ExcelApplication.class, args);
-	}
+
+  public static void main(String[] args) {
+    SpringApplication.run(ExcelApplication.class, args);
+  }
 }

@@ -1,28 +1,61 @@
 package com.invenia.excel.batch;
 
+import com.invenia.excel.web.entity.RunEnvironment;
+import com.invenia.excel.web.repository.RunEnvironmentRepository;
+import java.util.concurrent.ScheduledFuture;
+import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.batch.core.JobParametersBuilder;
-import org.springframework.batch.core.JobParametersInvalidException;
-import org.springframework.batch.core.launch.JobLauncher;
-import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
-import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
-import org.springframework.batch.core.repository.JobRestartException;
-import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
-
-import javax.batch.runtime.BatchStatus;
-import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class BatchScheduler {
-	private final BatchJobLauncher batchJobLauncher;
 
-	// 매주 월요일 05시
-	@Scheduled(cron = "0 10 09 * * MON")
-	public void everyMonDay() {
-		batchJobLauncher.executeJob(BatchJob::allProcessJob);
-	}
+  private final TaskScheduler scheduler;
+  private final BatchJobLauncher batchJobLauncher;
+  private final RunEnvironmentRepository runEnvironmentRepository;
+  private ScheduledFuture<?> future;
+
+  @EventListener(ApplicationReadyEvent.class)
+  public void init() {
+    if (runEnvironmentRepository.findById("auto").isEmpty()) {
+      RunEnvironment env = RunEnvironment.builder()
+          .type("auto")
+          .cron("0 10 09 * * MON") // 매주 월요일 09시 10분
+          .period(6) // 일주일 전 데이터 수집
+          .build();
+      runEnvironmentRepository.save(env);
+    }
+    start();
+  }
+
+  public void start() {
+    RunEnvironment environment = getRunEnvironment();
+    future = scheduler.schedule(
+        () -> batchJobLauncher.executeJob(BatchJob::allProcessJob, environment.getType()),
+        new CronTrigger(environment.getCron())
+    );
+  }
+
+  public void changeCron(String cronExpression) {
+    if (future != null) {
+      future.cancel(true);
+    }
+    future = null;
+    RunEnvironment environment = getRunEnvironment();
+    environment.setCron(cronExpression);
+    runEnvironmentRepository.save(environment);
+    start();
+  }
+
+  private RunEnvironment getRunEnvironment() {
+    return runEnvironmentRepository.findById("auto")
+        .orElseThrow(() -> new EntityNotFoundException("auto"));
+  }
 }

@@ -1,49 +1,50 @@
 <template>
-  <v-dialog v-model = "dialog" max-width = "800px">
-    <template v-slot:activator = "{ on, attrs }">
-      <v-btn color = "blue-grey" class = "ma-2 white--text" v-bind = "attrs" v-on = "on">
+  <v-dialog v-model="dialog" max-width="800px">
+    <template v-slot:activator="{ on, attrs }">
+      <v-btn v-bind="attrs" v-on="on" class="ma-2 white--text" color="blue-grey">
         배치 설정
-        <v-icon right dark>mdi-cog</v-icon>
+        <v-icon dark right>mdi-cog</v-icon>
       </v-btn>
     </template>
     <v-card>
       <v-card-title>
-        <span class = "text-h5">배치 환경 설정</span>
+        <span class="text-h5">배치 환경 설정</span>
       </v-card-title>
       <v-card-text>
         <v-container>
           <v-row>
-            <v-col cols = "12">
+            <v-col cols="12">
               <v-expansion-panels flat>
                 <v-expansion-panel>
                   <v-expansion-panel-header class="pa-0">
-                    <v-text-field label = "배치 조건" required readonly v-model = "form.cronExpression"
-                                  :hint="cronToString(form.cronExpression)" persistent-hint/>
+                    <v-text-field v-model="form.cronExpression"
+                                  :hint="cronToString(form.cronExpression)" label="배치 조건"
+                                  persistent-hint
+                                  readonly required/>
                   </v-expansion-panel-header>
                   <v-expansion-panel-content class="pa-0 mt-2">
-                    <v-card tile outlined class="pa-2">
-                      <VueCronEditorBuefy v-model="form.cronExpression" cronSyntax="quartz" locale="ko"
-                                          :custom-locales="i18n" preserveStateOnSwitchToAdvanced/>
+                    <v-card class="pa-2" outlined tile>
+                      <VueCronEditorBuefy v-model="form.cronExpression" :custom-locales="i18n"
+                                          cronSyntax="quartz" locale="ko"
+                                          preserveStateOnSwitchToAdvanced/>
                     </v-card>
                   </v-expansion-panel-content>
                 </v-expansion-panel>
               </v-expansion-panels>
             </v-col>
-            <v-col cols = "12" sm = "6">
-              <v-select :items = "['1일', '1주일', '1개월']" label = "조회 기간" required></v-select>
-            </v-col>
-            <v-col cols = "12" sm = "6">
-              <v-autocomplete :items = "['디디고 몰', 'KD', 'Cozy']" label = "대상 사이트" multiple></v-autocomplete>
+            <v-col cols="12">
+              <v-select v-model="form.period" :items="periodSelect" item-text="text"
+                        item-value="value" label="조회 기간" required></v-select>
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color = "blue darken-1" text @click = "dialog = false">
+        <v-btn color="blue darken-1" text @click="dialog = false">
           취소
         </v-btn>
-        <v-btn color = "blue darken-1" text @click = "cronSave(form)">
+        <v-btn color="blue darken-1" text @click="cronSave()">
           저장
         </v-btn>
       </v-card-actions>
@@ -54,6 +55,7 @@
 <script>
 import VueCronEditorBuefy from 'vue-cron-editor-buefy';
 import cronstrue from 'cronstrue/i18n';
+
 export default {
   name: "SettingDialog",
   components: {
@@ -62,11 +64,11 @@ export default {
   methods: {
     cronToString(cron) {
       return cronstrue
-          .toString(cron, { use24HourTimeFormat: true, locale: "ko" })
-          .replace("에서", " at ");
+      .toString(cron, {use24HourTimeFormat: true, locale: "ko"})
+      .replace("에서", " at ");
     },
-    cronSave(cron) {
-      console.log(cron);
+    cronSave() {
+      console.log();
     }
   },
   data() {
@@ -74,7 +76,22 @@ export default {
       dialog: false,
       form: {
         cronExpression: "0 10 9 ? * MON",
+        period: null,
       },
+      periodSelect: [
+        {
+          text: '하루 전',
+          value: '1',
+        },
+        {
+          text: '일주일 전',
+          value: '6',
+        },
+        {
+          text: '한달 전',
+          value: '30',
+        }
+      ],
       i18n: {
         ko: {
           every: "매",

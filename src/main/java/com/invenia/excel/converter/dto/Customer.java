@@ -8,5 +8,6 @@ import lombok.RequiredArgsConstructor;
 @AllArgsConstructor
 @RequiredArgsConstructor
 public class Customer {
-	private String custName; // 거래처명
+
+  private String custName; // 거래처명
 }

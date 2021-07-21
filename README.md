@@ -9,7 +9,7 @@ Selenium 을 이용한 웹 크롤링 프로젝트입니다.
 - Spring Batch
 - Selenium
 - Jxls
-- Gradle  
+- Gradle
 - H2
 - Vue
 
@@ -36,11 +36,13 @@ or use IDE Gradle Plugin
 > 빌드 시 resources의 application.yaml 파일과 deploy 폴더는 제외 됩니다.
 
 ### Excel Convert
-Jxls를 이용하여 수행 됩니다. 
+
+Jxls를 이용하여 수행 됩니다.
 
 변환에 필요한 템플릿과 매핑 파일은 ``/resources/deploy/template/`` 에 있습니다.
 
 ### Automations
+
 Selenium을 이용하여 수행 됩니다.
 
 브라우저 드라이버는 ``/resources/deploy/driver/`` 에 있습니다.
@@ -48,16 +50,19 @@ Selenium을 이용하여 수행 됩니다.
 드라이버는 서버 브라우저 환경에 맞게 구성해야 합니다.
 
 ### Front-end
+
 단일 페이지로 구성되어 있으며 위치는 ``/resources/static/index.html`` 입니다.
 
 추후 화면 구성이 복잡해지면 단일 HTML 에서 Vue CLI 으로 전환을 고려해야 합니다.
 
 ### Database
+
 해당 시스템을 이용하는 유저가 1~2명으로 매우 소수이기 때문에 H2 DB를 이용하고 있습니다.
 
 추후 시스템이 복잡해지고 사용 유저수가 증가하면 다른 RDBMS로 전환을 고려해야 합니다.
 
 ## Deployment
+
 > Selenium IE Driver 때문에 현재 배포는 Windows 만을 대상으로 하고 있습니다.
 
 배포 경로는 ``C:\excel\`` 입니다.

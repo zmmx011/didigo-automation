@@ -66,7 +66,7 @@ batch:
   config:
     runCozy: false
     runKd: false
-    runMall : true
+    runMall: true
     didigoWebUrl: "https://mfg.systemevererp.com/"
     cozyWebUrl: "http://100.100.16.16:9997"
     kdWebUrl: "https://mfg.systemevererp.com/"

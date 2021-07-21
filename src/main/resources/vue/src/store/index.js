@@ -32,14 +32,13 @@ export default new Vuex.Store({
     },
     showCustomersError(state, payload) {
       let url = payload._links.jobExecutionId.href;
-      state.messageDialog.jobExecutionId = url.substring(url.lastIndexOf("/") + 1);
+      state.messageDialog.jobExecutionId = url.substring(
+          url.lastIndexOf("/") + 1);
       state.messageDialog.title = '에러 상세 정보';
-      state.messageDialog.message =payload.exitMessage.replace(':', '\n');
+      state.messageDialog.message = payload.exitMessage.replace(':', '\n');
       state.messageDialog.show = true;
     },
   },
-  actions: {
-  },
-  modules: {
-  }
+  actions: {},
+  modules: {}
 })

@@ -1,13 +1,18 @@
 package com.invenia.excel.web.entity;
 
-import lombok.*;
-import org.hibernate.Hibernate;
-
-import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Objects;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import org.hibernate.Hibernate;
 
 @Getter
 @Setter
@@ -16,31 +21,36 @@ import java.util.Objects;
 @Entity
 @Table(name = "BATCH_JOB_EXECUTION_PARAMS")
 public class BatchJobExecutionParams implements Serializable {
-	private static final long serialVersionUID = 1L;
-	@Id
-	@ManyToOne
-	@JoinColumn(name = "JOB_EXECUTION_ID")
-	private BatchJobExecution jobExecutionId;
-	private String typeCd;
-	private String keyName;
-	private String stringVal;
-	private LocalDateTime dateVal;
-	private Long longVal;
-	private Double doubleVal;
-	private String identifying;
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-		BatchJobExecutionParams that = (BatchJobExecutionParams) o;
+  private static final long serialVersionUID = 1L;
+  @Id
+  @ManyToOne
+  @JoinColumn(name = "JOB_EXECUTION_ID")
+  private BatchJobExecution jobExecutionId;
+  private String typeCd;
+  private String keyName;
+  private String stringVal;
+  private LocalDateTime dateVal;
+  private Long longVal;
+  private Double doubleVal;
+  private String identifying;
 
-		return Objects.equals(jobExecutionId, that.jobExecutionId);
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+      return false;
+    }
+    BatchJobExecutionParams that = (BatchJobExecutionParams) o;
 
-	@Override
-	public int hashCode() {
-		return 1009468259;
-	}
+    return Objects.equals(jobExecutionId, that.jobExecutionId);
+  }
+
+  @Override
+  public int hashCode() {
+    return 1009468259;
+  }
 }
 

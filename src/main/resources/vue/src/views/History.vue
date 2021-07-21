@@ -1,22 +1,26 @@
 <template>
-  <v-container style = "height: 80vh">
-    <v-data-table class = "elevation-1" :headers = "headers" :items = "items" item-key = "jobExecutionId" sort-by = "createTime" sort-desc height = "80vh" :expanded.sync = "expanded" single-expand>
-      <template v-slot:item = "{ item, expand, isExpanded }">
+  <v-container style="height: 80vh">
+    <v-data-table :expanded.sync="expanded" :headers="headers" :items="items" class="elevation-1"
+                  height="80vh" item-key="jobExecutionId" single-expand sort-by="createTime"
+                  sort-desc>
+      <template v-slot:item="{ item, expand, isExpanded }">
         <tr>
-          <td class = "text-center">{{ item.jobExecutionId }}</td>
-          <td class = "text-center">{{ item.jobInstanceId.jobName }}</td>
-          <td class = "text-center">{{ item.createTime }}</td>
-          <td class = "text-center">{{ item.startTime }}</td>
-          <td class = "text-center">{{ item.endTime }}</td>
-          <td class = "text-center">{{ statusTranslate(item.status) }}</td>
-          <td class = "text-center">
-            <v-chip v-if = "isPurchaseConvertComplete(item.batchStepExecutions)" class = "ma-1" color = "success" outlined label @click.stop = "downloadPurchaseOrder(item.jobExecutionId)">
+          <td class="text-center">{{ item.jobExecutionId }}</td>
+          <td class="text-center">{{ item.jobInstanceId.jobName }}</td>
+          <td class="text-center">{{ item.createTime }}</td>
+          <td class="text-center">{{ item.startTime }}</td>
+          <td class="text-center">{{ item.endTime }}</td>
+          <td class="text-center">{{ statusTranslate(item.status) }}</td>
+          <td class="text-center">
+            <v-chip v-if="isPurchaseConvertComplete(item.batchStepExecutions)" class="ma-1"
+                    color="success" label outlined
+                    @click.stop="downloadPurchaseOrder(item.jobExecutionId)">
               다운로드
             </v-chip>
           </td>
           <td class="text-center">
-            <v-icon v-if="!isExpanded" @click = "expand(!isExpanded)">mdi-chevron-down</v-icon>
-            <v-icon v-else @click = "expand(!isExpanded)">mdi-chevron-up</v-icon>
+            <v-icon v-if="!isExpanded" @click="expand(!isExpanded)">mdi-chevron-down</v-icon>
+            <v-icon v-else @click="expand(!isExpanded)">mdi-chevron-up</v-icon>
           </td>
         </tr>
       </template>
@@ -28,18 +32,21 @@
           <JobPlayDialog/>
         </v-toolbar>
       </template>
-      <template v-slot:expanded-item = "{ headers, item }">
-        <td :colspan = "headers.length" class = "pa-0">
+      <template v-slot:expanded-item="{ headers, item }">
+        <td :colspan="headers.length" class="pa-0">
           <v-stepper alt-labels>
             <v-stepper-header>
-              <template v-for = "(step, index) in getJobSteps(item.jobInstanceId.jobName)">
-                <v-stepper-step :step = "index + 1" style = "font-size:14px; cursor: pointer;" :key = "index"
-                                :complete = "isStepCompleted(item.batchStepExecutions[index])"
-                                :rules = "[() => isStepError(item.batchStepExecutions[index])]"
-                                @click = "!isStepError(item.batchStepExecutions[index]) ? showCustomersError(item.batchStepExecutions[index]) : false">
+              <template v-for="(step, index) in getJobSteps(item.jobInstanceId.jobName)">
+                <v-stepper-step :key="index"
+                                :complete="isStepCompleted(item.batchStepExecutions[index])"
+                                :rules="[() => isStepError(item.batchStepExecutions[index])]"
+                                :step="index + 1"
+                                style="font-size:14px; cursor: pointer;"
+                                @click="!isStepError(item.batchStepExecutions[index]) ? showCustomersError(item.batchStepExecutions[index]) : false">
                   {{ step }}
                 </v-stepper-step>
-                <v-divider v-if = "index + 1 < getJobSteps(item.jobInstanceId.jobName).length" :key = "'divider-' + index"></v-divider>
+                <v-divider v-if="index + 1 < getJobSteps(item.jobInstanceId.jobName).length"
+                           :key="'divider-' + index"></v-divider>
               </template>
             </v-stepper-header>
           </v-stepper>
@@ -56,6 +63,7 @@ import {saveFile} from '@/assets/js/saver'
 import MessageDialog from '@/components/dialogs/MessageDialog'
 import SettingDialog from '@/components/dialogs/SettingDialog'
 import JobPlayDialog from '@/components/dialogs/JobPlayDialog'
+
 export default {
   name: "History",
   components: {
@@ -85,13 +93,14 @@ export default {
     },
     getHistoryList() {
       this.$http.get('api/batchJobExecutions?page=0&size=1000&sort=createTime,desc')
-          .then(result => this.items = result.data._embedded.batchJobExecutions)
-          .catch(error => this.showDialog('에러 상세 정보', error));
+      .then(result => this.items = result.data._embedded.batchJobExecutions)
+      .catch(error => this.showDialog('에러 상세 정보', error));
     },
     downloadPurchaseOrder(id) {
       this.$http.get('api/purchase-order/' + id, {responseType: 'blob'})
-          .then(response => saveFile(response, '구매 발주.zip'))
-          .catch(response => console.error('Could not Download the Excel report from the backend.', response));
+      .then(response => saveFile(response, '구매 발주.zip'))
+      .catch(response => console.error('Could not Download the Excel report from the backend.',
+          response));
     },
     statusTranslate(status) {
       switch (status) {
@@ -112,7 +121,8 @@ export default {
       jobSteps: [
         {
           jobName: '전체',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드',  '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '발주 변환', '품목 업로드', '수주 업로드'],
+          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '발주 변환',
+            '품목 업로드', '수주 업로드'],
         },
         {
           jobName: '품목 등록',
@@ -124,7 +134,8 @@ export default {
         },
         {
           jobName: '수주 등록',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드',  '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '품목 업로드', '수주 업로드'],
+          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '품목 업로드',
+            '수주 업로드'],
         },
         {
           jobName: '발주 변환',

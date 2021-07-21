@@ -9,10 +9,12 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 @Configuration
 public class RestConfig implements RepositoryRestConfigurer {
-	@Override
-	public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config, CorsRegistry cors) {
-		RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);
-		config.exposeIdsFor(BatchJobExecution.class);
-		config.exposeIdsFor(BatchStepExecution.class);
-	}
+
+  @Override
+  public void configureRepositoryRestConfiguration(RepositoryRestConfiguration config,
+      CorsRegistry cors) {
+    RepositoryRestConfigurer.super.configureRepositoryRestConfiguration(config, cors);
+    config.exposeIdsFor(BatchJobExecution.class);
+    config.exposeIdsFor(BatchStepExecution.class);
+  }
 }
