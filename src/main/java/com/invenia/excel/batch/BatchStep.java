@@ -4,7 +4,6 @@ import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.batch.config.ThrowsBiConsumer;
 import com.invenia.excel.converter.ExcelConverter;
 import com.invenia.excel.selenium.Automation;
-import com.invenia.excel.web.repository.RunEnvironmentRepository;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

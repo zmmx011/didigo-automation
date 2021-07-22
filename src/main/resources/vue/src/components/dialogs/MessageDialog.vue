@@ -29,8 +29,7 @@ export default {
       this.$http.get('api/unregistered-customer/' + this.getMessageDialog.jobExecutionId,
           {responseType: 'blob'})
       .then(response => saveFile(response, '미등록 거래처.xlsx'))
-      .catch(response => console.error('Could not Download the Excel report from the backend.',
-          response));
+      .catch(error => this.showDialog({title: '에러 상세 정보', message: error.message}));
     },
   }
 }

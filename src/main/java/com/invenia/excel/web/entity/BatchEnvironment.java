@@ -1,5 +1,6 @@
 package com.invenia.excel.web.entity;
 
+import com.sun.istack.NotNull;
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -19,11 +20,13 @@ import org.hibernate.Hibernate;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
 @NoArgsConstructor
-public class RunEnvironment {
+public class BatchEnvironment {
 
   @Id
   private String type;
+  @NotNull
   private String cron;
+  @NotNull
   private int period;
 
   @Override
@@ -34,7 +37,7 @@ public class RunEnvironment {
 		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
 			return false;
 		}
-    RunEnvironment that = (RunEnvironment) o;
+    BatchEnvironment that = (BatchEnvironment) o;
 
     return Objects.equals(type, that.type);
   }

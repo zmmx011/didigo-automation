@@ -17,14 +17,14 @@
               <v-expansion-panels flat>
                 <v-expansion-panel>
                   <v-expansion-panel-header class="pa-0">
-                    <v-text-field v-model="form.cronExpression"
-                                  :hint="cronToString(form.cronExpression)" label="배치 조건"
+                    <v-text-field v-model="form.cron"
+                                  :hint="cronToString(form.cron)" label="배치 조건"
                                   persistent-hint
                                   readonly required/>
                   </v-expansion-panel-header>
                   <v-expansion-panel-content class="pa-0 mt-2">
                     <v-card class="pa-2" outlined tile>
-                      <VueCronEditorBuefy v-model="form.cronExpression" :custom-locales="i18n"
+                      <VueCronEditorBuefy v-model="form.cron" :custom-locales="i18n"
                                           cronSyntax="quartz" locale="ko"
                                           preserveStateOnSwitchToAdvanced/>
                     </v-card>
@@ -34,17 +34,17 @@
             </v-col>
             <v-col cols="12">
               <v-select v-model="form.period" :items="periodSelect" item-text="text"
-                        item-value="value" label="조회 기간" required></v-select>
+                        item-value="period" label="조회 기간" required></v-select>
             </v-col>
           </v-row>
         </v-container>
       </v-card-text>
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn color="blue darken-1" text @click="dialog = false">
+        <v-btn color="blue darken-1" text @click="getEnv">
           취소
         </v-btn>
-        <v-btn color="blue darken-1" text @click="cronSave()">
+        <v-btn color="blue darken-1" text @click="saveEnv">
           저장
         </v-btn>
       </v-card-actions>
@@ -55,41 +55,56 @@
 <script>
 import VueCronEditorBuefy from 'vue-cron-editor-buefy';
 import cronstrue from 'cronstrue/i18n';
+import {mapMutations} from "vuex";
 
 export default {
   name: "SettingDialog",
   components: {
     VueCronEditorBuefy
   },
+  created() {
+    this.getEnv();
+  },
   methods: {
+    ...mapMutations(['showDialog']),
     cronToString(cron) {
       return cronstrue
       .toString(cron, {use24HourTimeFormat: true, locale: "ko"})
       .replace("에서", " at ");
     },
-    cronSave() {
-      console.log();
+    getEnv() {
+      this.dialog = false;
+      this.$http.get('api/settings/batch/auto')
+      .then(response => this.form = response.data)
+      .catch(error => this.showDialog({title: '에러 상세 정보', message: error.message}));
+    },
+    saveEnv() {
+      this.dialog = false;
+      this.$http.put('api/settings/batch', this.form)
+      .then(response => this.form = response.data)
+      .catch(error => this.showDialog({title: '에러 상세 정보', message: error.message}));
     }
   },
   data() {
     return {
       dialog: false,
       form: {
-        cronExpression: "0 10 9 ? * MON",
-        period: null,
+        type: "auto",
+        cron: "0 10 9 ? * *",
+        period: 6,
       },
       periodSelect: [
         {
           text: '하루 전',
-          value: '1',
+          period: 1,
         },
         {
           text: '일주일 전',
-          value: '6',
+          period: 6,
         },
         {
           text: '한달 전',
-          value: '30',
+          period: 30,
         }
       ],
       i18n: {
@@ -118,7 +133,7 @@ export default {
           weekly: "매주",
           monthly: "매월",
           advanced: "고급",
-          cronExpression: "cron 표현식 :"
+          cron: "cron 표현식 :"
         }
       },
     }

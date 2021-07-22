@@ -29,7 +29,7 @@
           <v-toolbar-title>업무 자동화</v-toolbar-title>
           <v-spacer></v-spacer>
           <SettingDialog/>
-          <JobStartDialog/>
+          <JobStartDialog @getHistoryList="getHistoryList"/>
         </v-toolbar>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
@@ -94,13 +94,12 @@ export default {
     getHistoryList() {
       this.$http.get('api/batchJobExecutions?page=0&size=1000&sort=createTime,desc')
       .then(result => this.items = result.data._embedded.batchJobExecutions)
-      .catch(error => this.showDialog('에러 상세 정보', error));
+      .catch(error => this.showDialog({title: '에러 상세 정보', message: error.message}));
     },
     downloadPurchaseOrder(id) {
       this.$http.get('api/purchase-order/' + id, {responseType: 'blob'})
       .then(response => saveFile(response, '구매 발주.zip'))
-      .catch(response => console.error('Could not Download the Excel report from the backend.',
-          response));
+      .catch(error => this.showDialog({title: '에러 상세 정보', message: error.message}));
     },
     statusTranslate(status) {
       switch (status) {

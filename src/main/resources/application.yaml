@@ -1,7 +1,4 @@
-# Server
-server:
-  port: 8080
-
+### Common
 # Spring
 spring:
   mail:
@@ -18,24 +15,12 @@ spring:
   batch:
     job:
       enabled: false
-  datasource:
-    hikari:
-      driver-class-name: org.mariadb.jdbc.Driver
-      jdbc-url: jdbc:mariadb://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
-      username: root
-      password: root
-  jpa:
-    show-sql: false
-    generate-ddl: true
-    hibernate:
-      ddl-auto: update # 실제 운용시 none 설정 해야 합니다.
-    properties:
-      hibernate:
-        type: trace
-        format_sql: true
-  output:
-    ansi:
-      enabled: always
+    jdbc:
+      initialize-schema: always
+
+# Server
+server:
+  port: 8080
 
 # Logging
 logging:
@@ -50,6 +35,41 @@ logging:
   pattern:
     console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}){blue} %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
 
+# batch
+batch:
+  config:
+    runCozy: false
+    runKd: false
+    runMall: true
+    didigoWebUrl: "https://mfg.systemevererp.com/"
+    cozyWebUrl: "http://100.100.16.16:9997"
+    kdWebUrl: "https://mfg.systemevererp.com/"
+    mallWebUrl: "https://admin.didigomall.com:444/"
+
+---
+### Development
+# Spring
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: root
+  jpa:
+    show-sql: false
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        type: trace
+        format_sql: true
+  output:
+    ansi:
+      enabled: always
 # Convert
 convert:
   config:
@@ -62,17 +82,36 @@ convert:
     item-file-name: "item.xlsx"
     contract-order-file-name: "contractorder.xlsx"
     purchase-order-file-name: "purchaseorder.xlsx"
-
-# Batch
-batch:
+---
+### Product
+# Spring
+spring:
   config:
-    runCozy: false
-    runKd: false
-    runMall: true
-    didigoWebUrl: "https://mfg.systemevererp.com/"
-    cozyWebUrl: "http://100.100.16.16:9997"
-    kdWebUrl: "https://mfg.systemevererp.com/"
-    mallWebUrl: "https://admin.didigomall.com:444/"
-
-console:
-  fetch: 5000
+    activate:
+      on-profile: prod
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
+    username: root
+    password: root
+  jpa:
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        type: trace
+        format_sql: true
+# Convert
+convert:
+  config:
+    chrome-download-path: "C:/Users/chatServer/Downloads/"
+    ie-download-path: "C:/Users/chatServer/Downloads/"
+    backup-path: "C:/excel/backup/"
+    template-path: "C:/excel/template/"
+    output-path: "C:/excel/output/"
+    customer-file-name: "customer.xlsx"
+    item-file-name: "item.xlsx"
+    contract-order-file-name: "contractorder.xlsx"
+    purchase-order-file-name: "purchaseorder.xlsx"

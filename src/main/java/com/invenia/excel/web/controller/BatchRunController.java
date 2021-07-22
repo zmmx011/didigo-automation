@@ -2,11 +2,8 @@ package com.invenia.excel.web.controller;
 
 import com.invenia.excel.batch.BatchJob;
 import com.invenia.excel.batch.BatchJobLauncher;
-import com.invenia.excel.batch.BatchScheduler;
 import com.invenia.excel.converter.ConvertConfig;
 import com.invenia.excel.web.dto.ManualRunSettings;
-import com.invenia.excel.web.entity.RunEnvironment;
-import com.invenia.excel.web.repository.RunEnvironmentRepository;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -25,31 +22,23 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/api")
-public class BatchJobController {
+public class BatchRunController {
+
   private final BatchJobLauncher launcher;
   private final ConvertConfig config;
-  private final BatchScheduler scheduler;
-  private final RunEnvironmentRepository envRepository;
-
-  @PutMapping(value = "/settings/batch")
-  public ResponseEntity<?> batchSettings(@RequestBody RunEnvironment environment) {
-    envRepository.save(environment);
-    scheduler.clear();
-    scheduler.start();
-    return ResponseEntity.ok().body(environment);
-  }
 
   @PostMapping(value = "/run/all")
   public ResponseEntity<String> runAll(@RequestBody ManualRunSettings runSettings) {

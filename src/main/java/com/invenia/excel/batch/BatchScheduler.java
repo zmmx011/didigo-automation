@@ -1,11 +1,9 @@
 package com.invenia.excel.batch;
 
-import com.invenia.excel.web.entity.RunEnvironment;
-import com.invenia.excel.web.repository.RunEnvironmentRepository;
+import com.invenia.excel.web.entity.BatchEnvironment;
+import com.invenia.excel.web.repository.BatchEnvironmentRepository;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -24,24 +22,24 @@ public class BatchScheduler {
   private final String RUN_TYPE = "auto";
   private final TaskScheduler scheduler;
   private final BatchJobLauncher launcher;
-  private final RunEnvironmentRepository runEnvironmentRepository;
+  private final BatchEnvironmentRepository batchEnvironmentRepository;
   private ScheduledFuture<?> future;
 
   @EventListener(ApplicationReadyEvent.class)
   public void init() {
-    if (runEnvironmentRepository.findById(RUN_TYPE).isEmpty()) {
-      RunEnvironment env = RunEnvironment.builder()
+    if (batchEnvironmentRepository.findById(RUN_TYPE).isEmpty()) {
+      BatchEnvironment env = BatchEnvironment.builder()
           .type(RUN_TYPE)
           .cron("0 10 09 * * MON") // 매주 월요일 09시 10분
           .period(6) // 일주일 전 데이터 수집
           .build();
-      runEnvironmentRepository.save(env);
+      batchEnvironmentRepository.save(env);
     }
     //start();
   }
 
   public void start() {
-    RunEnvironment environment = runEnvironmentRepository.findById(RUN_TYPE)
+    BatchEnvironment environment = batchEnvironmentRepository.findById(RUN_TYPE)
         .orElseThrow(() -> new EntityNotFoundException(RUN_TYPE));
     LocalDate today = LocalDate.now();
     DayOfWeek todayOfWeek = today.getDayOfWeek();
@@ -55,8 +53,8 @@ public class BatchScheduler {
       fromDate = today.minusDays(period + todayOfWeek.getValue());
       toDate = today.minusDays(todayOfWeek.getValue());
     }
-    future = scheduler.schedule(() -> launcher
-            .executeJob(BatchJob::allProcessJob, fromDate.toString(), toDate.toString()),
+    future = scheduler.schedule(
+        () -> launcher.executeJob(BatchJob::allProcessJob, fromDate.toString(), toDate.toString()),
         new CronTrigger(environment.getCron()));
   }
 

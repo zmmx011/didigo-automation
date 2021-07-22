@@ -2,8 +2,11 @@
   <v-dialog v-model="dialog" max-width="600px">
     <template v-slot:activator="{ on, attrs }">
       <v-btn v-bind="attrs" v-on="on" class="ma-2 white--text" color="blue-grey">
-        수동 실행
-        <v-icon dark right>mdi-play</v-icon>
+        <v-progress-circular v-if="progress" indeterminate color="white"></v-progress-circular>
+        <template v-else>
+          수동 실행
+          <v-icon dark right>mdi-play</v-icon>
+        </template>
       </v-btn>
     </template>
     <v-card>
@@ -14,11 +17,16 @@
         <v-container>
           <v-row>
             <v-col cols="12">
-              <v-menu ref="calendarMenu" v-model="calendarMenu" :close-on-content-click="false" :return-value.sync="dates" transition="scale-transition" offset-y min-width="auto">
+              <v-menu ref="calendarMenu" v-model="calendarMenu" :close-on-content-click="false"
+                      :return-value.sync="dates" transition="scale-transition" offset-y
+                      min-width="auto">
                 <template v-slot:activator="{ on, attrs }">
-                  <v-text-field v-model="dateRangeText" prepend-icon="mdi-calendar" label="데이터 조회 기간" v-bind="attrs" v-on="on" required readonly></v-text-field>
+                  <v-text-field v-model="dateRangeText" prepend-icon="mdi-calendar"
+                                label="데이터 조회 기간" v-bind="attrs" v-on="on" required
+                                readonly></v-text-field>
                 </template>
-                <v-date-picker v-model="dates" @input="menu2 = false" show-current range no-title scrollable>
+                <v-date-picker v-model="dates" @input="menu2 = false" show-current range no-title
+                               scrollable>
                   <v-spacer></v-spacer>
                   <v-btn text color="primary" @click="menu = false">
                     취소
@@ -58,14 +66,21 @@ export default {
     ...mapMutations(['showDialog']),
     executeJob() {
       this.dialog = false;
+      this.progress = true;
       this.$http.post('api/run/' + this.form.api, this.getFormData())
-      .then((response) => {
+      .then(response => {
         console.log(response);
-        this.getHistoryList();
-        this.showDialog('작업 완료', '작업 완료 되었습니다.');
+        this.progress = false;
+        this.$emit('getHistoryList');
+        this.showDialog({title: '작업 요청 완료', message: '작업을 요청 하였습니다.'});
         setTimeout(() => this.dialog.show = false, 5000);
       })
-      .catch(error => this.showDialog('에러 상세 정보', error));
+      .catch(error => {
+        console.log(error);
+        this.showDialog({title: '에러 상세 정보', message: error.message});
+        this.$emit('getHistoryList');
+        this.progress = false;
+      });
     },
     getFormData() {
       this.form.fromDate = this.dates[0];
@@ -78,6 +93,7 @@ export default {
     return {
       dialog: false,
       calendarMenu: false,
+      progress: false,
       dates: [],
       form: {
         fromDate: '',
@@ -94,7 +110,7 @@ export default {
     }
   },
   computed: {
-    dateRangeText () {
+    dateRangeText() {
       return this.dates.join(' ~ ')
     },
   },
