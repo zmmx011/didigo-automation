@@ -1,6 +1,5 @@
 package com.invenia.excel.web.entity;
 
-import java.time.LocalDate;
 import java.util.Objects;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -26,8 +25,6 @@ public class RunEnvironment {
   private String type;
   private String cron;
   private int period;
-  private LocalDate fromDate;
-  private LocalDate toDate;
 
   @Override
   public boolean equals(Object o) {

@@ -4,14 +4,9 @@ import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.batch.config.ThrowsBiConsumer;
 import com.invenia.excel.converter.ExcelConverter;
 import com.invenia.excel.selenium.Automation;
-import com.invenia.excel.web.entity.RunEnvironment;
 import com.invenia.excel.web.repository.RunEnvironmentRepository;
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import javax.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Step;
@@ -20,14 +15,13 @@ import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Configuration
+@AllArgsConstructor
 public class BatchStep {
-
-  private final RunEnvironmentRepository runEnvironmentRepository;
   private final ExcelConverter excelConverter;
   private final Automation automation;
   private final StepBuilderFactory stepBuilderFactory;
@@ -80,13 +74,13 @@ public class BatchStep {
         }).build();
   }
 
+  @Bean
   @JobScope
-  public Step siteDownloadStep(@Value("#{jobParameters[type]}") String type) {
+  public Step siteDownloadStep(@Value("#{jobParameters['fromDateStr']}") String fromDateStr, @Value("#{jobParameters['toDateStr']}") String toDateStr) {
     return stepBuilderFactory.get("데이터 수집")
         .tasklet((contribution, chunkContext) -> {
-          Map<String, LocalDate> period = getPeriod(type);
-          LocalDate fromDate = period.get("fromDate");
-          LocalDate toDate = period.get("toDate");
+          LocalDate fromDate = LocalDate.parse(fromDateStr);
+          LocalDate toDate = LocalDate.parse(toDateStr);
           try {
             if (batchConfig.getRunKd()) {
               automation.newTab();
@@ -200,27 +194,5 @@ public class BatchStep {
       contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
     }
     return RepeatStatus.FINISHED;
-  }
-
-  private Map<String, LocalDate> getPeriod(String type) {
-    Map<String, LocalDate> periodMap = new HashMap<>();
-    RunEnvironment env = runEnvironmentRepository.findById(type)
-        .orElseThrow(() -> new EntityNotFoundException(type));
-    if ("manual".equals(type)) {
-      periodMap.put("fromDate", env.getFromDate());
-      periodMap.put("toDate", env.getToDate());
-    } else {
-      LocalDate today = LocalDate.now();
-      DayOfWeek todayOfWeek = today.getDayOfWeek();
-      int period = env.getPeriod();
-      if (period == 1) {
-        periodMap.put("fromDate", today.minusDays(1));
-        periodMap.put("toDate", today.minusDays(1));
-      } else {
-        periodMap.put("fromDate", today.minusDays(period + todayOfWeek.getValue()));
-        periodMap.put("toDate", today.minusDays(todayOfWeek.getValue()));
-      }
-    }
-    return periodMap;
   }
 }

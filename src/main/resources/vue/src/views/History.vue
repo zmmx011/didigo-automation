@@ -29,7 +29,7 @@
           <v-toolbar-title>업무 자동화</v-toolbar-title>
           <v-spacer></v-spacer>
           <SettingDialog/>
-          <JobPlayDialog/>
+          <JobStartDialog/>
         </v-toolbar>
       </template>
       <template v-slot:expanded-item="{ headers, item }">
@@ -62,14 +62,14 @@ import {mapMutations} from 'vuex';
 import {saveFile} from '@/assets/js/saver'
 import MessageDialog from '@/components/dialogs/MessageDialog'
 import SettingDialog from '@/components/dialogs/SettingDialog'
-import JobPlayDialog from '@/components/dialogs/JobPlayDialog'
+import JobStartDialog from '@/components/dialogs/JobStartDialog'
 
 export default {
   name: "History",
   components: {
     MessageDialog,
     SettingDialog,
-    JobPlayDialog
+    JobStartDialog
   },
   mounted() {
     this.getHistoryList();
@@ -121,8 +121,8 @@ export default {
       jobSteps: [
         {
           jobName: '전체',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '발주 변환',
-            '품목 업로드', '수주 업로드'],
+          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
+            '발주 변환', '품목 업로드', '수주 업로드'],
         },
         {
           jobName: '품목 등록',
@@ -134,8 +134,8 @@ export default {
         },
         {
           jobName: '수주 등록',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환', '품목 업로드',
-            '수주 업로드'],
+          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
+            '품목 업로드', '수주 업로드'],
         },
         {
           jobName: '발주 변환',

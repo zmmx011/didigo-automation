@@ -4,54 +4,55 @@ import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.converter.ExcelConverter;
 import com.invenia.excel.selenium.Automation;
 import java.io.IOException;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@Configuration
+@AllArgsConstructor
 public class BatchJob {
-
   private final JobBuilderFactory jobBuilderFactory;
   private final ExcelConverter excelConverter;
   private final Automation automation;
   private final BatchConfig batchConfig;
   private final BatchStep step;
 
-  // 품목 등록
+  @Bean // 품목 등록
   public Job itemCodeJob() {
     return jobBuilderFactory.get("품목 등록")
         .preventRestart()
         .listener(new ConvertJobExecutionListener())
         .start(step.initStep())
         .next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
-        .next(step.siteDownloadStep(null)).on(ExitStatus.FAILED.getExitCode()).fail()
+        .next(step.siteDownloadStep(null, null)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.itemCodeConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.itemCodeUploadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .end()
         .build();
   }
 
-  // 미등록 거래처 확인
+  @Bean // 미등록 거래처 확인
   public Job customerCheckJob() {
     return jobBuilderFactory.get("거래처 확인")
-        .preventRestart()
+        .incrementer(new RunIdIncrementer())
         .listener(new ConvertJobExecutionListener())
         .start(step.initStep())
         .next(step.customerDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
-        .next(step.siteDownloadStep(null)).on(ExitStatus.FAILED.getExitCode()).fail()
+        .next(step.siteDownloadStep(null, null)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.customerCheckStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .end()
         .build();
   }
 
-  // 수주 등록
+  @Bean // 수주 등록
   public Job contractOrderJob() {
     return jobBuilderFactory.get("수주 등록")
         .preventRestart()
@@ -60,7 +61,7 @@ public class BatchJob {
         .next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.customerDownloadStep(false)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.contractOrderDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
-        .next(step.siteDownloadStep(null)).on(ExitStatus.FAILED.getExitCode()).fail()
+        .next(step.siteDownloadStep(null, null)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.customerCheckStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.itemCodeConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.contractOrderConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
@@ -70,20 +71,20 @@ public class BatchJob {
         .build();
   }
 
-  // 발주 데이터
+  @Bean // 발주 데이터
   public Job purchaseOrderJob() {
     return jobBuilderFactory.get("발주 변환")
         .preventRestart()
         .listener(new ConvertJobExecutionListener())
         .start(step.initStep())
         .next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
-        .next(step.siteDownloadStep(null)).on(ExitStatus.FAILED.getExitCode()).fail()
+        .next(step.siteDownloadStep(null, null)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.purchaseOrderConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .end()
         .build();
   }
 
-  // All
+  @Bean // All
   public Job allProcessJob() {
     return jobBuilderFactory.get("전체")
         .preventRestart()
@@ -92,7 +93,7 @@ public class BatchJob {
         .next(step.itemCodeDownloadStep(true)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.customerDownloadStep(false)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.contractOrderDownloadStep()).on(ExitStatus.FAILED.getExitCode()).fail()
-        .next(step.siteDownloadStep(null)).on(ExitStatus.FAILED.getExitCode()).fail()
+        .next(step.siteDownloadStep(null, null)).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.customerCheckStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.itemCodeConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
         .next(step.contractOrderConvertStep()).on(ExitStatus.FAILED.getExitCode()).fail()
@@ -104,7 +105,6 @@ public class BatchJob {
   }
 
   private class ConvertJobExecutionListener implements JobExecutionListener {
-
     @Override
     public void beforeJob(JobExecution jobExecution) {
       automation.setup();
@@ -114,7 +114,6 @@ public class BatchJob {
           " runMall : " + batchConfig.getRunMall());
       log.info(jobExecution.getJobInstance().getJobName() + " started");
     }
-
     @Override
     public void afterJob(JobExecution jobExecution) {
       automation.closeAutomation();

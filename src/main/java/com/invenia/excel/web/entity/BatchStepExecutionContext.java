@@ -2,6 +2,7 @@ package com.invenia.excel.web.entity;
 
 import java.io.Serializable;
 import java.util.Objects;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -21,11 +22,11 @@ import org.hibernate.Hibernate;
 @Table(name = "BATCH_STEP_EXECUTION_CONTEXT")
 public class BatchStepExecutionContext implements Serializable {
 
-  private static final long serialVersionUID = 1L;
   @Id
   @ManyToOne
   @JoinColumn(name = "STEP_EXECUTION_ID")
   private BatchStepExecution stepExecutionId;
+  @Column(length = 2500)
   private String shortContext;
   private String serializedContext;
 

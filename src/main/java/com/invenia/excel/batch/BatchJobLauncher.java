@@ -17,11 +17,12 @@ public class BatchJobLauncher {
   private final BatchJob batchJob;
   private final JobLauncher jobLauncher;
 
-  public void executeJob(Function<BatchJob, Job> func, String runType) {
+  public void executeJob(Function<BatchJob, Job> func, String fromDateStr, String toDateStr) {
     try {
       jobLauncher.run(func.apply(batchJob), new JobParametersBuilder()
-          .addString("type", runType)
           .addString("dateTime", LocalDateTime.now().toString())
+          .addString("fromDateStr", fromDateStr)
+          .addString("toDateStr", toDateStr)
           .toJobParameters()
       );
     } catch (Exception e) {

@@ -26,15 +26,11 @@ import org.hibernate.Hibernate;
 @ToString
 @RequiredArgsConstructor
 @Entity
-@SequenceGenerator(
-    name = "BATCH_JOB_EXECUTION_SEQ_GENERATOR",
-    sequenceName = "BATCH_JOB_EXECUTION_SEQ",
-    allocationSize = 1)
 @Table(name = "BATCH_JOB_EXECUTION")
 public class BatchJobExecution implements Serializable {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "BATCH_JOB_EXECUTION_SEQ_GENERATOR")
+  @GeneratedValue(strategy = GenerationType.AUTO)
   private Long jobExecutionId;
   private Long version;
   @ManyToOne
@@ -46,7 +42,9 @@ public class BatchJobExecution implements Serializable {
   private LocalDateTime startTime;
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
   private LocalDateTime endTime;
+  @Column(length = 10)
   private String status;
+  @Column(length = 2500)
   private String exitCode;
   @Column(length = 5000)
   private String exitMessage;

@@ -4,6 +4,7 @@ import com.invenia.excel.batch.BatchJob;
 import com.invenia.excel.batch.BatchJobLauncher;
 import com.invenia.excel.batch.BatchScheduler;
 import com.invenia.excel.converter.ConvertConfig;
+import com.invenia.excel.web.dto.ManualRunSettings;
 import com.invenia.excel.web.entity.RunEnvironment;
 import com.invenia.excel.web.repository.RunEnvironmentRepository;
 import java.io.FileOutputStream;
@@ -14,7 +15,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Optional;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -23,7 +23,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -39,8 +38,6 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping("/api")
 public class BatchJobController {
-
-  private final String MANUAL_RUN = "manual";
   private final BatchJobLauncher launcher;
   private final ConvertConfig config;
   private final BatchScheduler scheduler;
@@ -49,37 +46,43 @@ public class BatchJobController {
   @PutMapping(value = "/settings/batch")
   public ResponseEntity<?> batchSettings(@RequestBody RunEnvironment environment) {
     envRepository.save(environment);
-    scheduler.changeCron();
+    scheduler.clear();
+    scheduler.start();
     return ResponseEntity.ok().body(environment);
   }
 
   @PostMapping(value = "/run/all")
-  public ResponseEntity<String> runAll(@RequestBody RunEnvironment environment) {
-    launcher.executeJob(BatchJob::allProcessJob, MANUAL_RUN);
+  public ResponseEntity<String> runAll(@RequestBody ManualRunSettings runSettings) {
+    launcher.executeJob(BatchJob::allProcessJob, runSettings.getFromDate(),
+        runSettings.getToDate());
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/item")
-  public ResponseEntity<String> runItem(@RequestBody RunEnvironment environment) {
-    launcher.executeJob(BatchJob::itemCodeJob, MANUAL_RUN);
+  public ResponseEntity<String> runItem(@RequestBody ManualRunSettings runSettings) {
+    launcher.executeJob(BatchJob::itemCodeJob, runSettings.getFromDate(),
+        runSettings.getToDate());
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/customer")
-  public ResponseEntity<String> runCustomer(@RequestBody RunEnvironment environment) {
-    launcher.executeJob(BatchJob::customerCheckJob, MANUAL_RUN);
+  public ResponseEntity<String> runCustomer(@RequestBody ManualRunSettings runSettings) {
+    launcher.executeJob(BatchJob::customerCheckJob, runSettings.getFromDate(),
+        runSettings.getToDate());
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/contract")
-  public ResponseEntity<String> runContract(@RequestBody RunEnvironment environment) {
-    launcher.executeJob(BatchJob::contractOrderJob, MANUAL_RUN);
+  public ResponseEntity<String> runContract(@RequestBody ManualRunSettings runSettings) {
+    launcher.executeJob(BatchJob::contractOrderJob, runSettings.getFromDate(),
+        runSettings.getToDate());
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/purchase")
-  public ResponseEntity<String> runPurchase(@RequestBody RunEnvironment environment) {
-    launcher.executeJob(BatchJob::purchaseOrderJob, MANUAL_RUN);
+  public ResponseEntity<String> runPurchase(@RequestBody ManualRunSettings runSettings) {
+    launcher.executeJob(BatchJob::purchaseOrderJob, runSettings.getFromDate(),
+        runSettings.getToDate());
     return ResponseEntity.ok().build();
   }
 
@@ -130,6 +133,7 @@ public class BatchJobController {
           if (!file.getFileName().toString().equals(filterFileName)) {
             return FileVisitResult.CONTINUE;
           }
+
           try {
             Path targetFile = source.relativize(file);
             outputStream.putNextEntry(new ZipEntry(targetFile.toString()));

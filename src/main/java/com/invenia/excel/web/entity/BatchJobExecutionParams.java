@@ -22,7 +22,6 @@ import org.hibernate.Hibernate;
 @Table(name = "BATCH_JOB_EXECUTION_PARAMS")
 public class BatchJobExecutionParams implements Serializable {
 
-  private static final long serialVersionUID = 1L;
   @Id
   @ManyToOne
   @JoinColumn(name = "JOB_EXECUTION_ID")
