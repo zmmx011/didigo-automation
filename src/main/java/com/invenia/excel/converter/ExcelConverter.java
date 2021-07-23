@@ -75,7 +75,9 @@ public class ExcelConverter {
     // 수주 중복 제거
     List<Item> distinctOrders = Objects.requireNonNull(readItems(siteName))
         .stream()
-        .filter(x -> orders.stream().noneMatch(y -> x.getRemarkM().equals(y.getRemarkM())))
+        .filter(x -> orders.stream().filter(order -> !order.getRemarkM().equals(""))
+            .noneMatch(y -> x.getItemNo().equals(y.getRemarkM()))
+        )
         .collect(Collectors.toList());
     // 수주 엑셀 생성
     int size = makeExcel(distinctOrders,
@@ -196,28 +198,32 @@ public class ExcelConverter {
 
   public void fileBackup(Long id) throws IOException {
     log.info("파일 백업 시작");
-    Path backupPath = null;
     try {
-      backupPath = Paths.get(config.getBackupPath()).resolve(String.valueOf(id));
+      Path backupPath = Paths.get(config.getBackupPath()).resolve(String.valueOf(id));
+      Path chromeDownloadPath = Paths.get(config.getChromeDownloadPath());
+      Path ieDownloadPath = Paths.get(config.getIeDownloadPath());
+      Path outputPath = Paths.get(config.getOutputPath());
+      // make backup folder
       if (!Files.exists(backupPath)) {
         Files.createDirectories(backupPath);
       }
-      // Source Backup
-      fileMove(Paths.get(config.getChromeDownloadPath()), backupPath);
-      fileMove(Paths.get(config.getIeDownloadPath()), backupPath);
+      // Chrome Source Backup
+      if (Files.exists(chromeDownloadPath)) {
+        fileMove(chromeDownloadPath, backupPath);
+      }
+      // IE Source Backup
+      if (Files.exists(ieDownloadPath)) {
+        fileMove(ieDownloadPath, backupPath);
+      }
       // Output Backup
-      fileCopy(Paths.get(config.getOutputPath()), backupPath);
+      if (Files.exists(outputPath)) {
+        fileCopy(outputPath, backupPath);
+      }
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
       throw e;
     }
     log.info("파일 백업 완료");
-  }
-
-  public void demoFileCopy() throws IOException {
-    fileCopy(Paths.get("C:/excel/demo/MemberOrderList.xls"),
-        Paths.get(config.getIeDownloadPath()).resolve("MemberOrderList.xls"));
-    fileCopy(Paths.get("C:/excel/demo/"), Paths.get(config.getChromeDownloadPath()));
   }
 
   private void fileMove(Path source, Path target) throws IOException {

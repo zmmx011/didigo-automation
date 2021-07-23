@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workbook>
-  <worksheet idx="0" name="Sheet1">
-    <loop endRow="2" items="items" startRow="2" var="item"
-      varType="com.invenia.excel.converter.dto.ItemCode">
+  <worksheet name="Sheet1" idx="0">
+    <loop startRow="2" endRow="2" items="items" var="item" varType="com.invenia.excel.converter.dto.ItemCode">
+      <section startRow="2" endRow="2">
+        <mapping row="2" col="1">item.itemCode</mapping>
+      </section>
       <loopbreakcondition>
         <rowcheck offset="0"/>
       </loopbreakcondition>
-      <section endRow="2" startRow="2">
-        <mapping col="1" row="2">item.itemCode</mapping>
-      </section>
     </loop>
   </worksheet>
 </workbook>

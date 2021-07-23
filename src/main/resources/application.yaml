@@ -79,7 +79,7 @@ convert:
     template-path: "C:/excel/template/"
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
-    item-file-name: "item.xlsx"
+    item-code-file-name: "item.xlsx"
     contract-order-file-name: "contractorder.xlsx"
     purchase-order-file-name: "purchaseorder.xlsx"
 ---
@@ -93,12 +93,13 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
     username: root
-    password: root
+    password: dpftiq0308
   jpa:
+    database-platform: org.hibernate.dialect.MySQL55Dialect
     show-sql: false
-    generate-ddl: false
+    generate-ddl: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: update
     properties:
       hibernate:
         type: trace
@@ -112,6 +113,6 @@ convert:
     template-path: "C:/excel/template/"
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
-    item-file-name: "item.xlsx"
+    item-code-file-name: "item.xlsx"
     contract-order-file-name: "contractorder.xlsx"
     purchase-order-file-name: "purchaseorder.xlsx"

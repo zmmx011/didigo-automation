@@ -21,6 +21,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @AllArgsConstructor
 public class BatchStep {
+
   private final ExcelConverter excelConverter;
   private final Automation automation;
   private final StepBuilderFactory stepBuilderFactory;
@@ -75,7 +76,8 @@ public class BatchStep {
 
   @Bean
   @JobScope
-  public Step siteDownloadStep(@Value("#{jobParameters['fromDateStr']}") String fromDateStr, @Value("#{jobParameters['toDateStr']}") String toDateStr) {
+  public Step siteDownloadStep(@Value("#{jobParameters['fromDateStr']}") String fromDateStr,
+      @Value("#{jobParameters['toDateStr']}") String toDateStr) {
     return stepBuilderFactory.get("데이터 수집")
         .tasklet((contribution, chunkContext) -> {
           LocalDate fromDate = LocalDate.parse(fromDateStr);

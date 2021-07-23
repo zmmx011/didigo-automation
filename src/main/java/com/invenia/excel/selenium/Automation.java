@@ -345,16 +345,11 @@ public class Automation {
       wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500583"))).click();
       wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500583_iframe")));
 
-      // 수주 구분 (온라인 영업)
-      // driver.executeScript("return document.getElementById('txtOrderKindName_ul').value = '" + "8022084'");
-      // 부서
-      driver.executeScript("return document.getElementById('txtDeptName_txt').value = '" + "영업1팀'");
-      driver.findElementById("txtDeptName_txt").click();
       // 담당자
       driver.executeScript("return document.getElementById('txtEmpName_txt').value = '" + "이주현'");
-      driver.findElementById("txtEmpName_txt").click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtEmpName_txt"))).click();
 
-      driver.findElementById("btnGetFile_btn").click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.id("btnGetFile_btn"))).click();
       Thread.sleep(2000);
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(2000);

@@ -72,7 +72,7 @@ export default {
         console.log(response);
         this.progress = false;
         this.$emit('getHistoryList');
-        this.showDialog({title: '작업 요청 완료', message: '작업을 요청 하였습니다.'});
+        this.showDialog({title: '작업 완료', message: '작업을 진행 하였습니다.'});
         setTimeout(() => this.dialog.show = false, 5000);
       })
       .catch(error => {

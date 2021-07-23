@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workbook>
   <worksheet idx="0">
-    <loop endRow="1" items="items" startRow="1" var="item"
-      varType="com.invenia.excel.converter.dto.Item">
+    <section startRow="0" endRow="0"/>
+    <loop startRow="1" endRow="1" items="items" var="item" varType="com.invenia.excel.converter.dto.Item">
+      <section startRow="1" endRow="1">
+        <mapping row="1" col="0">item.itemClassSName</mapping>
+        <mapping row="1" col="2">item.remarkM</mapping>
+        <mapping row="1" col="3">item.orderDate</mapping>
+        <mapping row="1" col="6">item.itemNo</mapping>
+        <mapping row="1" col="7">item.itemName</mapping>
+        <mapping row="1" col="8">item.qty</mapping>
+        <mapping row="1" col="9">item.price</mapping>
+        <mapping row="1" col="12">item.curAmt</mapping>
+        <mapping row="1" col="34">item.custName</mapping>
+        <mapping row="1" col="42">item.deliveryDate</mapping>
+        <mapping row="1" col="44">item.dvPlaceName</mapping>
+        <mapping row="1" col="52">item.isInclusedVat</mapping>
+      </section>
       <loopbreakcondition>
         <rowcheck offset="0"/>
       </loopbreakcondition>
-      <section endRow="1" startRow="1">
-        <mapping col="0" row="1">item.itemClassSName</mapping>
-        <mapping col="2" row="1">item.remarkM</mapping>
-        <mapping col="3" row="1">item.orderDate</mapping>
-        <mapping col="6" row="1">item.itemNo</mapping>
-        <mapping col="7" row="1">item.itemName</mapping>
-        <mapping col="8" row="1">item.qty</mapping>
-        <mapping col="9" row="1">item.price</mapping>
-        <mapping col="34" row="1">item.custName</mapping>
-        <mapping col="42" row="1">item.deliveryDate</mapping>
-        <mapping col="44" row="1">item.dvPlaceName</mapping>
-        <mapping col="52" row="1">item.isInclusedVat</mapping>
-      </section>
     </loop>
-    <section endRow="0" startRow="0"/>
   </worksheet>
 </workbook>

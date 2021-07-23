@@ -23,10 +23,9 @@ public class Item {
   private String remarkM; // 특이사항
   private String unitName; // 단위
   private String qty; // 수량
-  private String price; // 판매 단가
+  private String price; // 단가
   private String isInclusedVat; // 부가세
-  private String purAmt; // 판매 금액
-  private String curAmt; // 판매 금액
+  private String curAmt; // 금액
   private String whName; // 창고
 
   @Override
