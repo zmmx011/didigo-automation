@@ -1,6 +1,9 @@
 package com.invenia.excel.batch.config;
 
+import java.time.LocalDateTime;
 import lombok.Data;
+import org.springframework.batch.core.JobParameters;
+import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 @Data
@@ -20,5 +23,13 @@ public class BatchConfig {
 
   public int getTabIndexIncrease() {
     return ++tabIndex;
+  }
+
+  public static JobParameters getJobParameters(String fromDate, String toDate) {
+    return new JobParametersBuilder()
+        .addString("dateTime", LocalDateTime.now().toString())
+        .addString("fromDateStr", fromDate)
+        .addString("toDateStr", toDate)
+        .toJobParameters();
   }
 }

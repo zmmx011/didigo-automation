@@ -1,5 +1,6 @@
 package com.invenia.excel.batch;
 
+import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.web.entity.BatchEnvironment;
 import com.invenia.excel.web.repository.BatchEnvironmentRepository;
 import java.time.DayOfWeek;
@@ -8,6 +9,7 @@ import java.util.concurrent.ScheduledFuture;
 import javax.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.TaskScheduler;
@@ -21,7 +23,8 @@ public class BatchScheduler {
 
   private final String RUN_TYPE = "auto";
   private final TaskScheduler scheduler;
-  private final BatchJobLauncher launcher;
+  private final BatchJob batchJob;
+  private final JobLauncher jobLauncher;
   private final BatchEnvironmentRepository batchEnvironmentRepository;
   private ScheduledFuture<?> future;
 
@@ -35,7 +38,7 @@ public class BatchScheduler {
           .build();
       batchEnvironmentRepository.save(env);
     }
-    //start();
+    start();
   }
 
   public void start() {
@@ -53,9 +56,14 @@ public class BatchScheduler {
       fromDate = today.minusDays(period + todayOfWeek.getValue());
       toDate = today.minusDays(todayOfWeek.getValue());
     }
-    future = scheduler.schedule(
-        () -> launcher.executeJob(BatchJob::allProcessJob, fromDate.toString(), toDate.toString()),
-        new CronTrigger(environment.getCron()));
+    future = scheduler.schedule(() -> {
+      try {
+        jobLauncher.run(batchJob.allProcessJob(),
+            BatchConfig.getJobParameters(fromDate.toString(), toDate.toString()));
+      } catch (Exception e) {
+        log.error(e.getLocalizedMessage(), e);
+      }
+    }, new CronTrigger(environment.getCron()));
   }
 
   public void clear() {

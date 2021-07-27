@@ -423,8 +423,10 @@ public class Automation {
   }
 
   public void closeAutomation() {
-    driver.close();
-    driver.quit();
-    log.info("Chrome Driver Close");
+    if (driver != null) {
+      driver.close();
+      driver.quit();
+      log.info("Chrome Driver Close");
+    }
   }
 }

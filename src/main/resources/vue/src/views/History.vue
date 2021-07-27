@@ -5,12 +5,13 @@
                   sort-desc>
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr>
-          <td class="text-center">{{ item.jobExecutionId }}</td>
-          <td class="text-center">{{ item.jobInstanceId.jobName }}</td>
-          <td class="text-center">{{ item.createTime }}</td>
-          <td class="text-center">{{ item.startTime }}</td>
-          <td class="text-center">{{ item.endTime }}</td>
-          <td class="text-center">{{ statusTranslate(item.status) }}</td>
+          <td>{{ item.jobExecutionId }}</td>
+          <td>{{ item.jobInstanceId.jobName }}</td>
+          <td>{{ item.startTime }}</td>
+          <td>{{ item.endTime }}</td>
+          <td>{{ item.batchJobExecutionParams[1].stringVal }}</td>
+          <td>{{ item.batchJobExecutionParams[2].stringVal }}</td>
+          <td>{{ statusTranslate(item.status) }}</td>
           <td class="text-center">
             <v-chip v-if="isPurchaseConvertComplete(item.batchStepExecutions)" class="ma-1"
                     color="success" label outlined
@@ -58,7 +59,7 @@
 </template>
 
 <script>
-import {mapMutations} from 'vuex';
+import {mapMutations, mapGetters} from 'vuex';
 import {saveFile} from '@/assets/js/saver'
 import MessageDialog from '@/components/dialogs/MessageDialog'
 import SettingDialog from '@/components/dialogs/SettingDialog'
@@ -73,6 +74,9 @@ export default {
   },
   mounted() {
     this.getHistoryList();
+  },
+  computed: {
+    ...mapGetters(['getJobSteps'])
   },
   methods: {
     ...mapMutations(['showDialog', 'showCustomersError']),
@@ -111,45 +115,19 @@ export default {
           return status
       }
     },
-    getJobSteps(jobName) {
-      return this.jobSteps.find(x => x.jobName === jobName).steps
-    }
   },
   data() {
     return {
-      jobSteps: [
-        {
-          jobName: '전체',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
-            '발주 변환', '품목 업로드', '수주 업로드'],
-        },
-        {
-          jobName: '품목 등록',
-          steps: ['초기화', '품목 다운로드', '데이터 수집', '품목 변환', '품목 업로드'],
-        },
-        {
-          jobName: '거래처 확인',
-          steps: ['초기화', '거래처 다운로드', '데이터 수집', '거래처 체크'],
-        },
-        {
-          jobName: '수주 등록',
-          steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
-            '품목 업로드', '수주 업로드'],
-        },
-        {
-          jobName: '발주 변환',
-          steps: ['초기화', '품목 다운로드', '데이터 수집', '발주 변환'],
-        },
-      ],
       items: [],
       expanded: [],
       headers: [
-        {text: '배치 번호', align: 'center'},
-        {text: '배치 종류', align: 'center'},
-        {text: '생성 시간', align: 'center'},
-        {text: '시작 시간', align: 'center'},
-        {text: '종료 시간', align: 'center'},
-        {text: '실행 결과', align: 'center'},
+        {text: '배치 번호'},
+        {text: '배치 종류'},
+        {text: '시작 시간'},
+        {text: '종료 시간'},
+        {text: '조회 시작 일'},
+        {text: '조회 종료 일 '},
+        {text: '실행 결과'},
         {text: '발주 데이터', align: 'center', sortable: false},
         {text: '스텝', align: 'center', value: 'data-table-expand', sortable: false},
       ],

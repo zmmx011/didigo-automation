@@ -118,21 +118,23 @@ public class ExcelConverter {
 
   public void clearOutputPath() throws IOException {
     Path outputPath = Paths.get(config.getOutputPath());
-    log.info(outputPath + " 삭제 실행");
-    try (Stream<Path> walk = Files.walk(outputPath)) {
-      walk.sorted(Comparator.reverseOrder())
-          .forEach(x -> {
-            try {
-              Files.delete(x);
-            } catch (IOException e) {
-              log.error(e.getLocalizedMessage(), e);
-            }
-          });
-    } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
-      throw e;
+    if (Files.exists(outputPath)) {
+      log.info(outputPath + " 삭제 실행");
+      try (Stream<Path> walk = Files.walk(outputPath)) {
+        walk.sorted(Comparator.reverseOrder())
+            .forEach(x -> {
+              try {
+                Files.delete(x);
+              } catch (IOException e) {
+                log.error(e.getLocalizedMessage(), e);
+              }
+            });
+      } catch (IOException e) {
+        log.error(e.getLocalizedMessage(), e);
+        throw e;
+      }
+      log.info(outputPath + " 삭제 완료");
     }
-    log.info(outputPath + " 삭제 완료");
   }
 
   private String getTemplateSitePath(String siteName) {

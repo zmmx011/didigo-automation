@@ -1,7 +1,7 @@
 package com.invenia.excel.web.controller;
 
 import com.invenia.excel.batch.BatchJob;
-import com.invenia.excel.batch.BatchJobLauncher;
+import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.converter.ConvertConfig;
 import com.invenia.excel.web.dto.ManualRunSettings;
 import java.io.FileOutputStream;
@@ -17,18 +17,17 @@ import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -37,41 +36,47 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class BatchRunController {
 
-  private final BatchJobLauncher launcher;
   private final ConvertConfig config;
+  private final BatchJob batchJob;
+  private final JobLauncher jobLauncher;
 
   @PostMapping(value = "/run/all")
-  public ResponseEntity<String> runAll(@RequestBody ManualRunSettings runSettings) {
-    launcher.executeJob(BatchJob::allProcessJob, runSettings.getFromDate(),
-        runSettings.getToDate());
+  public ResponseEntity<String> runAll(@RequestBody ManualRunSettings runSettings)
+      throws Exception {
+    jobLauncher.run(batchJob.allProcessJob(),
+        BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/item")
-  public ResponseEntity<String> runItem(@RequestBody ManualRunSettings runSettings) {
-    launcher.executeJob(BatchJob::itemCodeJob, runSettings.getFromDate(),
-        runSettings.getToDate());
+  public ResponseEntity<String> runItem(@RequestBody ManualRunSettings runSettings)
+      throws Exception {
+    jobLauncher.run(batchJob.itemCodeJob(),
+        BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/customer")
-  public ResponseEntity<String> runCustomer(@RequestBody ManualRunSettings runSettings) {
-    launcher.executeJob(BatchJob::customerCheckJob, runSettings.getFromDate(),
-        runSettings.getToDate());
+  public ResponseEntity<String> runCustomer(@RequestBody ManualRunSettings runSettings)
+      throws Exception {
+    jobLauncher.run(batchJob.customerCheckJob(),
+        BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/contract")
-  public ResponseEntity<String> runContract(@RequestBody ManualRunSettings runSettings) {
-    launcher.executeJob(BatchJob::contractOrderJob, runSettings.getFromDate(),
-        runSettings.getToDate());
+  public ResponseEntity<String> runContract(@RequestBody ManualRunSettings runSettings)
+      throws Exception {
+    jobLauncher.run(batchJob.contractOrderJob(),
+        BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   @PostMapping(value = "/run/purchase")
-  public ResponseEntity<String> runPurchase(@RequestBody ManualRunSettings runSettings) {
-    launcher.executeJob(BatchJob::purchaseOrderJob, runSettings.getFromDate(),
-        runSettings.getToDate());
+  public ResponseEntity<String> runPurchase(@RequestBody ManualRunSettings runSettings)
+      throws Exception {
+    jobLauncher.run(batchJob.purchaseOrderJob(),
+        BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 

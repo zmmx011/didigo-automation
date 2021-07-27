@@ -2,6 +2,7 @@ package com.invenia.excel;
 
 import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.converter.ConvertConfig;
+import java.lang.Thread.UncaughtExceptionHandler;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

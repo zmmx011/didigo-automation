@@ -25,10 +25,9 @@
                                 label="데이터 조회 기간" v-bind="attrs" v-on="on" required
                                 readonly></v-text-field>
                 </template>
-                <v-date-picker v-model="dates" @input="menu2 = false" show-current range no-title
-                               scrollable>
+                <v-date-picker v-model="dates" show-current range no-title scrollable>
                   <v-spacer></v-spacer>
-                  <v-btn text color="primary" @click="menu = false">
+                  <v-btn text color="primary" @click="calendarMenu = false">
                     취소
                   </v-btn>
                   <v-btn text color="primary" @click="$refs.calendarMenu.save(dates)">
@@ -38,8 +37,9 @@
               </v-menu>
             </v-col>
             <v-col cols="12">
-              <v-select v-model="form.api" :items="jobSelect" item-text="text"
-                        item-value="api" label="배치 종류" required></v-select>
+              <v-select v-model="form.job" :items="jobSelect" item-text="text"
+                        item-value="api" label="배치 종류" required return-object
+                        persistent-hint :hint="getJobStepHint()"></v-select>
             </v-col>
           </v-row>
         </v-container>
@@ -58,22 +58,32 @@
 </template>
 
 <script>
-import {mapMutations} from "vuex";
+import {mapMutations, mapGetters} from "vuex";
 
 export default {
   name: "JobStartDialog",
+  computed: {
+    ...mapGetters(['getJobSteps']),
+    dateRangeText() {
+      return this.dates.join(' ~ ')
+    },
+  },
   methods: {
+    getJobStepHint() {
+      let selectText = this.form.job.text;
+      return selectText !== undefined ? this.getJobSteps(selectText).join(" > ") : '';
+    },
     ...mapMutations(['showDialog']),
     executeJob() {
       this.dialog = false;
       this.progress = true;
-      this.$http.post('api/run/' + this.form.api, this.getFormData())
+      this.$http.post('api/run/' + this.form.job.api, this.getFormData())
       .then(response => {
         console.log(response);
         this.progress = false;
         this.$emit('getHistoryList');
         this.showDialog({title: '작업 완료', message: '작업을 진행 하였습니다.'});
-        setTimeout(() => this.dialog.show = false, 5000);
+        setTimeout(() => this.dialog = false, 5000);
       })
       .catch(error => {
         console.log(error);
@@ -85,7 +95,6 @@ export default {
     getFormData() {
       this.form.fromDate = this.dates[0];
       this.form.toDate = this.dates[1];
-      console.log(this.form)
       return this.form;
     },
   },
@@ -98,21 +107,16 @@ export default {
       form: {
         fromDate: '',
         toDate: '',
-        api: ''
+        job: {}
       },
       jobSelect: [
         {text: '전체', api: 'all',},
         {text: '품목 등록', api: 'item',},
         {text: '수주 등록', api: 'contract',},
-        {text: '발주 생성', api: 'purchase',},
-        {text: '미등록 거래처 확인', api: 'customer',},
+        {text: '발주 변환', api: 'purchase',},
+        {text: '거래처 확인', api: 'customer',},
       ],
     }
-  },
-  computed: {
-    dateRangeText() {
-      return this.dates.join(' ~ ')
-    },
   },
 }
 </script>

@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.hibernate.Hibernate;
+import org.hibernate.engine.jdbc.batch.spi.Batch;
 
 @Getter
 @Setter
@@ -54,6 +55,10 @@ public class BatchJobExecution implements Serializable {
   @OneToMany(mappedBy = "jobExecutionId")
   @ToString.Exclude
   private List<BatchStepExecution> batchStepExecutions;
+
+  @OneToMany(mappedBy = "jobExecutionId")
+  @ToString.Exclude
+  private List<BatchJobExecutionParams> batchJobExecutionParams;
 
   @Override
   public boolean equals(Object o) {

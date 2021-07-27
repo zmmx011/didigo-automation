@@ -11,6 +11,30 @@ export default new Vuex.Store({
       message: '',
       jobExecutionId: ''
     },
+    jobSteps: [
+      {
+        jobName: '전체',
+        steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
+          '발주 변환', '품목 업로드', '수주 업로드'],
+      },
+      {
+        jobName: '품목 등록',
+        steps: ['초기화', '품목 다운로드', '데이터 수집', '품목 변환', '품목 업로드'],
+      },
+      {
+        jobName: '거래처 확인',
+        steps: ['초기화', '거래처 다운로드', '데이터 수집', '거래처 체크'],
+      },
+      {
+        jobName: '수주 등록',
+        steps: ['초기화', '품목 다운로드', '거래처 다운로드', '수주 다운로드', '데이터 수집', '거래처 체크', '품목 변환', '수주 변환',
+          '품목 업로드', '수주 업로드'],
+      },
+      {
+        jobName: '발주 변환',
+        steps: ['초기화', '품목 다운로드', '데이터 수집', '발주 변환'],
+      },
+    ],
   },
   getters: {
     getMessageDialog(state) {
@@ -23,6 +47,9 @@ export default new Vuex.Store({
       }
       return result
     },
+    getJobSteps: (state) => (jobName) => {
+      return state.jobSteps.find(x => x.jobName === jobName).steps
+    }
   },
   mutations: {
     showDialog(state, payload) {
