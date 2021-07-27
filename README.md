@@ -10,8 +10,9 @@ Selenium 을 이용한 웹 크롤링 프로젝트입니다.
 - Selenium
 - Jxls
 - Gradle
-- H2
+- MySQL
 - Vue
+- yarn
 
 ## Process
 
@@ -33,7 +34,7 @@ $ ./gradlew bootJar
 
 or use IDE Gradle Plugin
 
-> 빌드 시 resources의 application.yaml 파일과 deploy 폴더는 제외 됩니다.
+> 빌드 시 resources의 deploy 폴더는 제외 됩니다.
 
 ### Excel Convert
 
@@ -50,16 +51,10 @@ Selenium을 이용하여 수행 됩니다.
 드라이버는 서버 브라우저 환경에 맞게 구성해야 합니다.
 
 ### Front-end
-
-단일 페이지로 구성되어 있으며 위치는 ``/resources/static/index.html`` 입니다.
-
-추후 화면 구성이 복잡해지면 단일 HTML 에서 Vue CLI 으로 전환을 고려해야 합니다.
+Vue 폴더에 소스가 위치하고 있으며, 빌드시 ``/resources/static`` 경로에 파일이 생성 됩니다.
 
 ### Database
-
-해당 시스템을 이용하는 유저가 1~2명으로 매우 소수이기 때문에 H2 DB를 이용하고 있습니다.
-
-추후 시스템이 복잡해지고 사용 유저수가 증가하면 다른 RDBMS로 전환을 고려해야 합니다.
+192.168.11.158 서버의 MySql 사용하고 있습니다.
 
 ## Deployment
 
@@ -72,5 +67,4 @@ Selenium을 이용하여 수행 됩니다.
 3. ``application.yaml`` 파일의 설정 내용을 확인 합니다.
 4. 실행 ``convert.bat``
 5. 사이트 접속 확인 http://localhost:8080
-
-zulu11 jre를 ``resources/deploy`` 폴더에 내장하고 있습니다. 
+ 
