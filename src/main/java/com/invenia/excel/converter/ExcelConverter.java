@@ -98,18 +98,30 @@ public class ExcelConverter {
     // 거래처 엑셀 읽기
     List<Customer> customers = readExcel(config.getTemplatePath() + "systemever/customer.xml",
         config.getCustomerFilePath());
-    // 거래처 중복 제거
-    List<Customer> distinctCustomers = Objects.requireNonNull(readItems(siteName))
+
+    // 미등록 거래처
+    List<Customer> unregisteredCustomers = Objects.requireNonNull(readItems(siteName))
         .stream()
         .filter(x -> !x.getCustName().equals(""))
         .filter(x -> customers.stream().noneMatch(y -> x.getCustName().equals(y.getCustName())))
         .map(x -> new Customer(x.getCustName()))
         .distinct()
         .collect(Collectors.toList());
-    // 중복 거래처 발생시 Exception
-    if (!distinctCustomers.isEmpty()) {
+
+    // 미등록 공급사
+    List<Customer> unregisteredSuppliers = Objects.requireNonNull(readItems(siteName))
+        .stream()
+        .filter(x -> customers.stream().noneMatch(y -> x.getDvPlaceName().equals(y.getCustName())))
+        .map(x -> new Customer(x.getCustName()))
+        .distinct()
+        .collect(Collectors.toList());
+
+    unregisteredCustomers.addAll(unregisteredSuppliers);
+
+    // 미등록 거래처 발생시 Exception
+    if (!unregisteredCustomers.isEmpty()) {
       // 거래처 엑셀 생성
-      int result = makeExcel(distinctCustomers,
+      int result = makeExcel(unregisteredCustomers,
           Paths.get(getTemplateSitePath(siteName) + config.getCustomerFileName()),
           Paths.get(config.getOutputPath() + config.getCustomerFileName()));
       throw new UnregisteredCustomerException("미등록 거래처가 " + result + "건 존재합니다.");
