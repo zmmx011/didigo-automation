@@ -51,21 +51,27 @@ public class ExcelConverter {
     config.getConvertResult().put("mall", new ConvertResult());
   }
 
-  public void itemCodeConvert(String siteName) throws Exception {
+  public void itemConvert(String siteName) throws Exception {
     // 품목 엑셀 읽기
     List<ItemCode> itemCodes = readExcel(config.getTemplatePath() + "systemever/itemcode.xml",
         config.getItemCodeFilePath());
+
+    List<Item> items = readItems(siteName);
     // 품목 중복 제거
-    List<Item> distinctItems = Objects.requireNonNull(readItems(siteName))
-        .stream()
-        .filter(x -> itemCodes.stream().noneMatch(y -> x.getItemNo().equals(y.getItemCode())))
-        .distinct()
-        .collect(Collectors.toList());
+    List<Item> distinctItems = Objects.requireNonNull(items).stream()
+        .filter(item -> itemCodes.stream().noneMatch(itemCode -> item.getItemNo().equals(itemCode.getItemCode())))
+        .distinct().collect(Collectors.toList());
     // 품목 엑셀 생성
-    int size = makeExcel(distinctItems,
-        Paths.get(getTemplateSitePath(siteName) + config.getItemCodeFileName()),
-        Paths.get(getOutputSitePath(siteName) + config.getItemCodeFileName()));
-    config.getConvertResult().get(siteName).setItemCodeResult(size);
+    String itemCodeFileName = config.getItemCodeFileName();
+    int itemCodeSize = makeExcel(distinctItems, Paths.get(getTemplateSitePath(siteName) + itemCodeFileName),
+        Paths.get(getOutputSitePath(siteName) + itemCodeFileName));
+    config.getConvertResult().get(siteName).setItemCodeResult(itemCodeSize);
+    // 단가 엑셀 생성
+    String getItemPriceFileName = config.getItemPriceFileName();
+    int itemPriceSize = makeExcel(items.stream().distinct().collect(Collectors.toList()),
+        Paths.get(getTemplateSitePath(siteName) + getItemPriceFileName),
+        Paths.get(getOutputSitePath(siteName) + getItemPriceFileName));
+    config.getConvertResult().get(siteName).setItemCodeResult(itemPriceSize);
   }
 
   public void contractOrderConvert(String siteName) throws Exception {
@@ -73,24 +79,21 @@ public class ExcelConverter {
     List<Item> orders = readExcel(config.getTemplatePath() + "systemever/contractorder.xml",
         config.getContractOrderFilePath());
     // 수주 중복 제거
-    List<Item> distinctOrders = Objects.requireNonNull(readItems(siteName))
-        .stream()
-        .filter(x -> orders.stream().filter(order -> !order.getRemarkM().equals(""))
-            .noneMatch(y -> x.getItemNo().equals(y.getRemarkM()))
-        )
-        .collect(Collectors.toList());
+    List<Item> distinctOrders = Objects.requireNonNull(readItems(siteName)).stream().filter(
+        item -> orders.stream().filter(order -> !order.getRemarkM().equals(""))
+            .noneMatch(x -> item.getItemNo().equals(x.getRemarkM()))).collect(Collectors.toList());
     // 수주 엑셀 생성
-    int size = makeExcel(distinctOrders,
-        Paths.get(getTemplateSitePath(siteName) + config.getContractOrderFileName()),
-        Paths.get(getOutputSitePath(siteName) + config.getContractOrderFileName()));
+    String contractOrderFileName = config.getContractOrderFileName();
+    int size = makeExcel(distinctOrders, Paths.get(getTemplateSitePath(siteName) + contractOrderFileName),
+        Paths.get(getOutputSitePath(siteName) + contractOrderFileName));
     config.getConvertResult().get(siteName).setContractOrderResult(size);
   }
 
   public void purchaseOrderConvert(String siteName) throws Exception {
     // 발주 엑셀 생성
-    int size = makeExcel(readItems(siteName),
-        Paths.get(getTemplateSitePath(siteName) + config.getPurchaseOrderFileName()),
-        Paths.get(getOutputSitePath(siteName) + config.getPurchaseOrderFileName()));
+    String purchaseOrderFileName = config.getPurchaseOrderFileName();
+    int size = makeExcel(readItems(siteName), Paths.get(getTemplateSitePath(siteName) + purchaseOrderFileName),
+        Paths.get(getOutputSitePath(siteName) + purchaseOrderFileName));
     config.getConvertResult().get(siteName).setPurchaseOrderResult(size);
   }
 
@@ -99,31 +102,32 @@ public class ExcelConverter {
     List<Customer> customers = readExcel(config.getTemplatePath() + "systemever/customer.xml",
         config.getCustomerFilePath());
 
+    // 사이트 데이터 읽기
+    List<Item> items = readItems(siteName);
+
     // 미등록 거래처
-    List<Customer> unregisteredCustomers = Objects.requireNonNull(readItems(siteName))
-        .stream()
-        .filter(x -> !x.getCustName().equals(""))
-        .filter(x -> customers.stream().noneMatch(y -> x.getCustName().equals(y.getCustName())))
-        .map(x -> new Customer(x.getCustName()))
-        .distinct()
-        .collect(Collectors.toList());
+    List<Customer> unregisteredCustomers = Objects.requireNonNull(items).stream()
+        .filter(item -> !item.getCustName().equals(""))
+        .filter(item -> customers.stream().noneMatch(customer -> item.getCustName().equals(customer.getCustName())))
+        .map(item -> new Customer(item.getCustName())).distinct().collect(Collectors.toList());
+
+    log.info("미등록 거래처 " + unregisteredCustomers.size() + "건");
 
     // 미등록 공급사
-    List<Customer> unregisteredSuppliers = Objects.requireNonNull(readItems(siteName))
-        .stream()
-        .filter(x -> customers.stream().noneMatch(y -> x.getDvPlaceName().equals(y.getCustName())))
-        .map(x -> new Customer(x.getCustName()))
-        .distinct()
-        .collect(Collectors.toList());
+    List<Customer> unregisteredSuppliers = Objects.requireNonNull(items).stream()
+        .filter(item -> customers.stream().noneMatch(customer -> item.getDvPlaceName().equals(customer.getCustName())))
+        .map(item -> new Customer(item.getDvPlaceName())).distinct().collect(Collectors.toList());
+
+    log.info("미등록 공급사 " + unregisteredSuppliers.size() + "건");
 
     unregisteredCustomers.addAll(unregisteredSuppliers);
 
     // 미등록 거래처 발생시 Exception
     if (!unregisteredCustomers.isEmpty()) {
       // 거래처 엑셀 생성
-      int result = makeExcel(unregisteredCustomers,
-          Paths.get(getTemplateSitePath(siteName) + config.getCustomerFileName()),
-          Paths.get(config.getOutputPath() + config.getCustomerFileName()));
+      String customerFileName = config.getCustomerFileName();
+      int result = makeExcel(unregisteredCustomers, Paths.get(getTemplateSitePath(siteName) + customerFileName),
+          Paths.get(config.getOutputPath() + customerFileName));
       throw new UnregisteredCustomerException("미등록 거래처가 " + result + "건 존재합니다.");
     }
   }
@@ -133,14 +137,13 @@ public class ExcelConverter {
     if (Files.exists(outputPath)) {
       log.info(outputPath + " 삭제 실행");
       try (Stream<Path> walk = Files.walk(outputPath)) {
-        walk.sorted(Comparator.reverseOrder())
-            .forEach(x -> {
-              try {
-                Files.delete(x);
-              } catch (IOException e) {
-                log.error(e.getLocalizedMessage(), e);
-              }
-            });
+        walk.sorted(Comparator.reverseOrder()).forEach(x -> {
+          try {
+            Files.delete(x);
+          } catch (IOException e) {
+            log.error(e.getLocalizedMessage(), e);
+          }
+        });
       } catch (IOException e) {
         log.error(e.getLocalizedMessage(), e);
         throw e;
@@ -182,8 +185,8 @@ public class ExcelConverter {
       items = convertHtmlToItem(Paths.get(config.getCozyFilePath()));
     } else if ("kd".equals(siteName)) { // KD 날짜 형식 변환
       items = readExcel(templateSitePath + "convert.xml", config.getKdFilePath());
-      items.forEach(x -> x.setOrderDate(LocalDate.parse(x.getOrderDate())
-          .format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
+      items.forEach(
+          x -> x.setOrderDate(LocalDate.parse(x.getOrderDate()).format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
     } else { // 디디고
       items = readExcel(templateSitePath + "convert.xml", config.getMallFilePath());
     }
@@ -244,11 +247,8 @@ public class ExcelConverter {
     if (!Files.exists(source)) {
       Files.createDirectories(source);
     }
-    Files.walk(source, 1)
-        .filter(Files::isRegularFile)
-        .filter(
-            path -> path.getFileSystem().getPathMatcher("glob:**.{xls,xlsx,html}").matches(path))
-        .forEach(x -> {
+    Files.walk(source, 1).filter(Files::isRegularFile)
+        .filter(path -> path.getFileSystem().getPathMatcher("glob:**.{xls,xlsx,html}").matches(path)).forEach(x -> {
           try {
             Files.move(x, target.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
           } catch (IOException e) {
@@ -286,10 +286,8 @@ public class ExcelConverter {
 
     Document doc = Jsoup.parse(htmlPath.toFile(), "UTF-8");
     List<Item> items = new ArrayList<>();
-    doc.select("tbody").select("tr")
-        .stream()
-        .filter(x -> !"".equals(x.children().get(0).text()) &&
-            !x.children().get(0).text().contains("존재하지 않습니다"))
+    doc.select("tbody").select("tr").stream()
+        .filter(x -> !"".equals(x.children().get(0).text()) && !x.children().get(0).text().contains("존재하지 않습니다"))
         .forEach(x -> {
           Elements elements = x.children();
           Item item = new Item();

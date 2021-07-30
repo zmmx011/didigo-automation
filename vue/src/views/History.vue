@@ -1,16 +1,15 @@
 <template>
   <v-container style="height: 80vh">
-    <v-data-table :expanded.sync="expanded" :headers="headers" :items="items" class="elevation-1"
-                  height="80vh" item-key="jobExecutionId" single-expand sort-by="createTime"
-                  sort-desc>
+    <v-data-table :expanded.sync="expanded" :headers="headers" :items="items" class="elevation-1" height="80vh"
+                  item-key="jobExecutionId" single-expand sort-by="createTime" sort-desc>
       <template v-slot:item="{ item, expand, isExpanded }">
         <tr>
           <td>{{ item.jobExecutionId }}</td>
           <td>{{ item.jobInstanceId.jobName }}</td>
           <td>{{ item.startTime }}</td>
           <td>{{ item.endTime }}</td>
-          <td>{{ item.batchJobExecutionParams[1].stringVal }}</td>
-          <td>{{ item.batchJobExecutionParams[2].stringVal }}</td>
+          <td>{{ item.batchJobExecutionParams.find(x => x.keyName === 'fromDateStr').stringVal }}</td>
+          <td>{{ item.batchJobExecutionParams.find(x => x.keyName === 'toDateStr').stringVal }}</td>
           <td>{{ statusTranslate(item.status) }}</td>
           <td class="text-center">
             <v-chip v-if="isPurchaseConvertComplete(item.batchStepExecutions)" class="ma-1"
@@ -43,7 +42,8 @@
                                 :rules="[() => isStepError(item.batchStepExecutions[index])]"
                                 :step="index + 1"
                                 style="font-size:14px; cursor: pointer;"
-                                @click="!isStepError(item.batchStepExecutions[index]) ? showCustomersError(item.batchStepExecutions[index]) : false">
+                                @click="!isStepError(item.batchStepExecutions[index]) ?
+                                showCustomersError(item.batchStepExecutions[index]) : false">
                   {{ step }}
                 </v-stepper-step>
                 <v-divider v-if="index + 1 < getJobSteps(item.jobInstanceId.jobName).length"
@@ -59,7 +59,7 @@
 </template>
 
 <script>
-import {mapMutations, mapGetters} from 'vuex';
+import {mapGetters, mapMutations} from 'vuex';
 import {saveFile} from '@/assets/js/saver'
 import MessageDialog from '@/components/dialogs/MessageDialog'
 import SettingDialog from '@/components/dialogs/SettingDialog'

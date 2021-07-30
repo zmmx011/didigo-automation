@@ -16,7 +16,6 @@ public class ControllerExceptionHandler {
 
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ErrorResponse> handleBadRequestException(RuntimeException e) {
-    log.info("@@@@@@@@@@@@@@@@");
     log.error(e.getMessage(), e);
     ErrorResponse response = ErrorResponse.builder()
         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())
@@ -26,7 +25,6 @@ public class ControllerExceptionHandler {
 
   @ExceptionHandler(WebDriverException.class)
   public ResponseEntity<ErrorResponse> handleBadRequestException(WebDriverException e) {
-    log.info("#####################");
     log.error(e.getMessage(), e);
     ErrorResponse response = ErrorResponse.builder()
         .status(HttpStatus.INTERNAL_SERVER_ERROR.value())

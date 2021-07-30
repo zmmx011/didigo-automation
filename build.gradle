@@ -21,9 +21,6 @@ node {
     nodeProjectDir = file("${project.projectDir}/vue")
 }
 
-compileJava.dependsOn 'yarn_install'
-processResources.dependsOn 'yarn_build'
-
 bootJar {
     exclude('deploy/*')
 }

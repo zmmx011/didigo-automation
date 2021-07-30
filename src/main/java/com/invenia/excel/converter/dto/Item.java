@@ -24,18 +24,19 @@ public class Item {
   private String unitName; // 단위
   private String qty; // 수량
   private String price; // 단가
-  private String isInclusedVat; // 부가세
-  private String curAmt; // 금액
+  private String smVatKindName; // 부가세구분
+  private String curAmt; // 판매금액
+  private String purAmt; // 매입금액
   private String whName; // 창고
 
   @Override
   public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || getClass() != o.getClass()) {
-			return false;
-		}
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     Item item = (Item) o;
 

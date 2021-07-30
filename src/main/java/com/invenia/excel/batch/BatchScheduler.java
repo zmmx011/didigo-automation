@@ -44,22 +44,21 @@ public class BatchScheduler {
   public void start() {
     BatchEnvironment environment = batchEnvironmentRepository.findById(RUN_TYPE)
         .orElseThrow(() -> new EntityNotFoundException(RUN_TYPE));
-    LocalDate today = LocalDate.now();
-    DayOfWeek todayOfWeek = today.getDayOfWeek();
-    LocalDate fromDate;
-    LocalDate toDate;
-    int period = environment.getPeriod();
-    if (period == 1) {
-      fromDate = today.minusDays(period);
-      toDate = today.minusDays(period);
-    } else {
-      fromDate = today.minusDays(period + todayOfWeek.getValue());
-      toDate = today.minusDays(todayOfWeek.getValue());
-    }
     future = scheduler.schedule(() -> {
+      LocalDate today = LocalDate.now();
+      DayOfWeek todayOfWeek = today.getDayOfWeek();
+      LocalDate fromDate;
+      LocalDate toDate;
+      int period = environment.getPeriod();
+      if (period == 1) {
+        fromDate = today.minusDays(period);
+        toDate = today.minusDays(period);
+      } else {
+        fromDate = today.minusDays(period + todayOfWeek.getValue());
+        toDate = today.minusDays(todayOfWeek.getValue());
+      }
       try {
-        jobLauncher.run(batchJob.allProcessJob(),
-            BatchConfig.getJobParameters(fromDate.toString(), toDate.toString()));
+        jobLauncher.run(batchJob.allProcessJob(), BatchConfig.getJobParameters(fromDate.toString(), toDate.toString()));
       } catch (Exception e) {
         log.error(e.getLocalizedMessage(), e);
       }

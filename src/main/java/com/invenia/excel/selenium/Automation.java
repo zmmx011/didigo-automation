@@ -85,10 +85,12 @@ public class Automation {
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("from")));
 
-    driver.executeScript("return document.getElementById('from').value = '" +
-        fromDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
-    driver.executeScript("return document.getElementById('to').value = '" +
-        toDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
+    driver.executeScript(
+        "return document.getElementById('from').value = '" + fromDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            + "';");
+    driver.executeScript(
+        "return document.getElementById('to').value = '" + toDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            + "';");
 
     // 엑셀 다운로드
     driver.executeScript("Chg_Excel();");
@@ -96,8 +98,7 @@ public class Automation {
     log.info("Cozy 다운로드 완료");
   }
 
-  public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url)
-      throws InterruptedException {
+  public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url) throws InterruptedException {
     // driver
     Path path = Paths.get("C:/excel/driver/iedriver.exe");
 
@@ -118,17 +119,16 @@ public class Automation {
     Thread.sleep(5000);
 
     // 페이지이동 * 주문관리 -> 세금계산서 -> 회원별 정산
-    ieDriver.navigate()
-        .to("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
+    ieDriver.navigate().to("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
 
     // 기간 설정
     ieWait.until(ExpectedConditions.presenceOfElementLocated(By.id("contractStartDate_con")));
-    ((JavascriptExecutor) ieDriver)
-        .executeScript("return document.getElementById('contractStartDate_con').value = '" +
-            fromDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) + "';");
-    ((JavascriptExecutor) ieDriver)
-        .executeScript("return document.getElementById('contractEndDate_con').value = '" +
-            toDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd")) + "';");
+    ((JavascriptExecutor) ieDriver).executeScript(
+        "return document.getElementById('contractStartDate_con').value = '" + fromDate.format(
+            DateTimeFormatter.ofPattern("yyyy.MM.dd")) + "';");
+    ((JavascriptExecutor) ieDriver).executeScript(
+        "return document.getElementById('contractEndDate_con').value = '" + toDate.format(
+            DateTimeFormatter.ofPattern("yyyy.MM.dd")) + "';");
 
     // 엑셀 다운로드
     ieWait.until(ExpectedConditions.presenceOfElementLocated(By.id("DHTMLSuite_menuItem2")));
@@ -142,10 +142,13 @@ public class Automation {
       Robot robot = new Robot();
       robot.keyPress(KeyEvent.VK_TAB);
       Thread.sleep(1000);
+      robot.keyRelease(KeyEvent.VK_TAB);
       robot.keyPress(KeyEvent.VK_ENTER);
       Thread.sleep(1000);
+      robot.keyRelease(KeyEvent.VK_ENTER);
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(1000);
+      robot.keyRelease(KeyEvent.VK_ESCAPE);
     } catch (InterruptedException | AWTException e) {
       log.error(e.getLocalizedMessage(), e);
     }
@@ -159,8 +162,7 @@ public class Automation {
     driver.get(url);
 
     // 팝업창 제거
-    driver.executeScript(
-        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+    driver.executeScript("return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
@@ -173,25 +175,22 @@ public class Automation {
         "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
     // 구매 메뉴 선택
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("18"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("501579"))).click();
 
     // 구매발주품목 조회
     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("501579_iframe")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtCustName_txt")))
-        .sendKeys("디디고");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtCustName_txt"))).sendKeys("디디고");
 
     // 기간 설정
-    driver.executeScript("return document.getElementById('datPODateFr_dat').value = '" +
-        fromDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
-    driver.executeScript("return document.getElementById('datPODateTo_dat').value = '" +
-        toDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
+    driver.executeScript("return document.getElementById('datPODateFr_dat').value = '" + fromDate.format(
+        DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
+    driver.executeScript("return document.getElementById('datPODateTo_dat').value = '" + toDate.format(
+        DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS_cvp_vp")));
@@ -206,8 +205,7 @@ public class Automation {
     driver.get(url);
 
     // 팝업창 제거
-    driver.executeScript(
-        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+    driver.executeScript("return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
@@ -226,16 +224,14 @@ public class Automation {
     }
 
     // 품목 메뉴 선택
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("4"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("19"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500260"))).click();
 
     // 품목 조회
     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500260_iframe")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
@@ -247,8 +243,7 @@ public class Automation {
 
   public void runContractOrderDownload() throws InterruptedException {
     // 영업관리
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']"))).click();
 
     // 수주관리 - 수주 - 수주입력업로드
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("5"))).click();
@@ -260,11 +255,11 @@ public class Automation {
     new Select(driver.findElementById("txtBizUnitName_ul")).selectByVisibleText("디디고");
 
     // 기간
-    driver.executeScript("return document.getElementById('datOrderDateFr_dat').value = '" +
-        LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
+    driver.executeScript(
+        "return document.getElementById('datOrderDateFr_dat').value = '" + LocalDate.now().minusMonths(1)
+            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + "';");
 
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
@@ -280,16 +275,14 @@ public class Automation {
     }
 
     // 거래처 메뉴 선택
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("14"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500373"))).click();
 
     // 거래처 조회
     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500373_iframe")));
-    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
@@ -303,9 +296,7 @@ public class Automation {
     if (config.getConvertResult().get(siteName).getItemCodeResult() > 0) {
       Robot robot = new Robot();
       // 전사관리
-      wait.until(
-          ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']")))
-          .click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']"))).click();
 
       // 품목관리 - 품목등록 - 품목등록업로드
       wait.until(ExpectedConditions.presenceOfElementLocated(By.id("4"))).click();
@@ -317,12 +308,12 @@ public class Automation {
       Thread.sleep(2000);
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(2000);
+      robot.keyRelease(KeyEvent.VK_ESCAPE);
       driver.findElementById("FrmWDAItemUpload_FileDialog_file")
           .sendKeys(config.getOutputPath() + siteName + "/" + config.getItemCodeFileName());
       driver.findElementById("btnGetData_btn").click();
       Thread.sleep(5000);
-      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
-          .click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
       Thread.sleep(5000);
       driver.switchTo().defaultContent();
       wait.until(ExpectedConditions.presenceOfElementLocated(By.id("msgBtnOk"))).click();
@@ -335,9 +326,7 @@ public class Automation {
       Robot robot = new Robot();
 
       // 영업관리
-      wait.until(
-          ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']")))
-          .click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']"))).click();
 
       // 수주관리 - 수주 - 수주입력업로드
       wait.until(ExpectedConditions.presenceOfElementLocated(By.id("5"))).click();
@@ -353,40 +342,17 @@ public class Automation {
       Thread.sleep(2000);
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(2000);
+      robot.keyRelease(KeyEvent.VK_ESCAPE);
       driver.findElementById("FrmWSLOrderUpload_FileDialog_file")
           .sendKeys(config.getOutputPath() + siteName + "/" + config.getContractOrderFileName());
       driver.findElementById("btnGetData_btn").click();
       Thread.sleep(5000);
-      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
-          .click();
+      wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
       Thread.sleep(5000);
       driver.switchTo().defaultContent();
       log.info(siteName + " 수주 입력 엑셀 업로드 완료");
     }
   }
-	/*
-	public void runCustomerUpload(String siteName) throws InterruptedException, AWTException {
-		Robot robot = new Robot();
-		// 거래처관리 - 거래처 등록 - 거래처 등록 업로드
-		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
-		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("14"))).click();
-		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("502175"))).click();
-		wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("502175_iframe")));
-
-		driver.findElementById("btnGetFile_btn").click();
-		Thread.sleep(2000);
-		robot.keyPress(KeyEvent.VK_ESCAPE);
-		Thread.sleep(2000);
-		driver.findElementById("FrmWDACustUpload_FileDialog_file")
-				.sendKeys(config.getOutputPath() + siteName + "/" + config.getItemFileName());
-		driver.findElementById("btnGetData_btn").click();
-		Thread.sleep(5000);
-		wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
-		wait.until(ExpectedConditions.presenceOfElementLocated(By.id("msgBtnOk"))).click();
-		log.info(siteName + " 거래처 엑셀 업로드 완료");
-
-		driver.switchTo().defaultContent();
-	}*/
 
   public void newTab() {
     // 빈 탭 생성
@@ -407,12 +373,10 @@ public class Automation {
       @Override
       public Boolean apply(@NullableDecl WebDriver driver) {
         return (Boolean) ((JavascriptExecutor) driver).executeScript(
-            "const canvas = document.getElementById('" + canvasId + "');" +
-                "const context = canvas.getContext('2d');" +
-                "const pixelBuffer = new Uint32Array(" +
-                "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer" +
-                ");" +
-                "return pixelBuffer.some(color => color === 0);");
+            "const canvas = document.getElementById('" + canvasId + "');" + "const context = canvas.getContext('2d');"
+                + "const pixelBuffer = new Uint32Array("
+                + "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer" + ");"
+                + "return pixelBuffer.some(color => color === 0);");
       }
 
       @Override

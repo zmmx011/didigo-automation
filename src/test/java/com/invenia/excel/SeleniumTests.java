@@ -2,6 +2,7 @@ package com.invenia.excel;
 
 import com.invenia.excel.converter.dto.Item;
 import java.awt.AWTException;
+import java.awt.Desktop;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -17,6 +18,7 @@ import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.junit.BeforeClass;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -29,20 +31,94 @@ import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class SeleniumTests {
 
-  static Logger log = LoggerFactory.getLogger(ExcelConvertTests.class);
-
-  private ChromeDriver chromeDriver;
-  private WebDriverWait chromeDriverWait;
-  private Actions chromeActions;
+  private ChromeDriver driver;
+  private WebDriverWait wait;
+  private Actions actions;
   private WebDriver ieDriver;
   private WebDriverWait ieDriverWait;
+
+  @Test
+  void testClipboard() throws IOException, AWTException, InterruptedException {
+    System.setProperty("java.awt.headless", "false");
+    File file = new File("C:\\excel\\demo\\test.xlsx");
+    Desktop desktop = Desktop.getDesktop();
+    if (!file.exists()) {
+      return;
+    }
+    desktop.open(file);
+    Thread.sleep(2000);
+    Robot robot = new Robot();
+    robot.keyPress(KeyEvent.VK_CONTROL);
+    robot.keyPress(KeyEvent.VK_LEFT);
+    robot.keyRelease(KeyEvent.VK_LEFT);
+    robot.keyPress(KeyEvent.VK_UP);
+    robot.keyRelease(KeyEvent.VK_UP);
+    robot.keyPress(KeyEvent.VK_A);
+    robot.keyRelease(KeyEvent.VK_A);
+    robot.keyPress(KeyEvent.VK_C);
+    robot.keyRelease(KeyEvent.VK_C);
+    robot.keyRelease(KeyEvent.VK_CONTROL);
+    robot.keyPress(KeyEvent.VK_ALT);
+    robot.keyPress(KeyEvent.VK_F4);
+    robot.keyRelease(KeyEvent.VK_ALT);
+    robot.keyRelease(KeyEvent.VK_F4);
+    robot.keyPress(KeyEvent.VK_ENTER);
+    robot.keyRelease(KeyEvent.VK_ENTER);
+
+    chromeConfig();
+
+    driver.get("https://mfg.systemevererp.com/");
+
+    // 팝업창 제거
+    driver.executeScript("return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+
+    // 로그인
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
+        .sendKeys("d_itsecurity@inveniacorp.com");
+    driver.findElementById("inputLoginPwd").sendKeys("a1234");
+    driver.findElementById("btnLogin").click();
+
+    // Loding Area zIndex 낮추기 (방해됨)
+    driver.executeScript(
+        "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
+
+    // 구매 메뉴 선택
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("1"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("9"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("501868"))).click();
+
+    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("501868_iframe")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("SS_cvp_vp"))).click();
+    Thread.sleep(2000);
+    robot.keyPress(KeyEvent.VK_CONTROL);
+    robot.keyPress(KeyEvent.VK_LEFT);
+    robot.keyRelease(KeyEvent.VK_LEFT);
+    robot.keyPress(KeyEvent.VK_UP);
+    robot.keyRelease(KeyEvent.VK_UP);
+    robot.keyRelease(KeyEvent.VK_CONTROL);
+    robot.keyPress(KeyEvent.VK_RIGHT);
+    robot.keyRelease(KeyEvent.VK_RIGHT);
+    robot.keyPress(KeyEvent.VK_CONTROL);
+    robot.keyPress(KeyEvent.VK_V);
+    robot.keyRelease(KeyEvent.VK_V);
+    robot.keyRelease(KeyEvent.VK_CONTROL);
+    Thread.sleep(2000);
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='2']"))).click();
+
+    driver.switchTo().defaultContent();
+    Thread.sleep(50000);
+    if (driver != null) {
+      driver.close();
+      driver.quit();
+    }
+  }
+
 
   public static ExpectedCondition<Boolean> isCanvasBlank(final String canvasId) {
     return new ExpectedCondition<>() {
@@ -50,9 +126,8 @@ public class SeleniumTests {
       @Override
       public Boolean apply(@NullableDecl WebDriver chromeDriver) {
         return (Boolean) ((JavascriptExecutor) chromeDriver).executeScript(
-            "const canvas = document.getElementById('" + canvasId + "');" +
-                "const context = canvas.getContext('2d');" +
-                "const pixelBuffer = new Uint32Array(" +
+            "const canvas = document.getElementById('" + canvasId + "');" + "const context = canvas.getContext('2d');"
+                + "const pixelBuffer = new Uint32Array(" +
                 "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer" +
                 ");" +
                 "return pixelBuffer.some(color => color === 0);");
@@ -65,54 +140,9 @@ public class SeleniumTests {
     };
   }
 
-  @Test
-  void testOne() throws InterruptedException {
-    chromeConfig();
-    runCozyDownload();
-    try {
-      Thread.sleep(5000);
-      // 탭 종료
-      chromeDriver.close();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } finally {
-      // WebDriver 종료
-      chromeDriver.quit();
-    }
-  }
-
-  @Test
-  void testSelenium() throws InterruptedException, IOException, AWTException {
-
-    chromeConfig();
-    LocalDate yesterday = LocalDate.now().minusDays(1);
-    runSystemEverDownload(yesterday, yesterday);
-    newTabAndChange(1);
-    runKdErpDownload();
-    newTabAndChange(2);
-    runCozyDownload();
-    ieConfig();
-    runMallDownload();
-
-    // 5초 후에 WebDriver 종료
-    try {
-      Thread.sleep(50000);
-      // 탭 종료
-      chromeDriver.close();
-      ieDriver.close();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    } finally {
-      // WebDriver 종료
-      chromeDriver.quit();
-      ieDriver.quit();
-    }
-  }
-
   void chromeConfig() {
     // driver
-    Path path = Paths
-        .get(System.getProperty("user.dir"), "src/main/resources/driver/chromedriver.exe");
+    Path path = Paths.get(System.getProperty("user.dir"), "src/main/resources/deploy/driver/chromedriver.exe");
 
     // WebDriver 경로 설정
     System.setProperty("webdriver.chrome.driver", path.toString());
@@ -137,13 +167,13 @@ public class SeleniumTests {
     options.setBinary("C:/Program Files/Google/Chrome/Application/chrome.exe");
 
     // WebDriver 객체 생성
-    chromeDriver = new ChromeDriver(options);
+    driver = new ChromeDriver(options);
 
-    chromeDriver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+    driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
 
-    chromeDriverWait = new WebDriverWait(chromeDriver, 10);
+    wait = new WebDriverWait(driver, 10);
 
-    chromeActions = new Actions(chromeDriver);
+    actions = new Actions(driver);
   }
 
   void ieConfig() {
@@ -162,130 +192,110 @@ public class SeleniumTests {
   }
 
   void runKdErpDownload() {
-    chromeDriver.get("https://mfg.systemevererp.com/");
+    driver.get("https://mfg.systemevererp.com/");
 
     // 팝업창 제거
-    chromeDriver.executeScript(
-        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+    driver.executeScript("return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
         .sendKeys("m_itsecurity@inveniacorp.com");
-    chromeDriver.findElementById("inputLoginPwd").sendKeys("Invenia_0041");
-    chromeDriver.findElementById("btnLogin").click();
+    driver.findElementById("inputLoginPwd").sendKeys("Invenia_0041");
+    driver.findElementById("btnLogin").click();
 
     // Loding Area zIndex 낮추기 (방해됨)
-    chromeDriver.executeScript(
+    driver.executeScript(
         "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
     // 구매 메뉴 선택
-    chromeDriverWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']")))
-        .click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("18"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("501579"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("18"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("501579"))).click();
 
     // 구매발주품목 조회
-    chromeDriverWait
-        .until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("501579_iframe")));
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtCustName_txt")))
-        .sendKeys("디디고");
+    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("501579_iframe")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtCustName_txt"))).sendKeys("디디고");
     //chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("datPODateFr_dat"))).sendKeys("2021-02-01");
 
-    chromeDriver
-        .executeScript("return document.getElementById('datPODateFr_dat').value = '2021-02-01';");
+    driver.executeScript("return document.getElementById('datPODateFr_dat').value = '2021-02-01';");
 
-    chromeDriverWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
     // 엑셀 다운로드
-    chromeDriverWait.until(ExpectedConditions.not(isCanvasBlank("SS_cvp_vp")));
-    chromeActions.contextClick(chromeDriver.findElementById("SS_btnSheetSetting")).perform();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+    wait.until(ExpectedConditions.not(isCanvasBlank("SS_cvp_vp")));
+    actions.contextClick(driver.findElementById("SS_btnSheetSetting")).perform();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
 
-    chromeDriver.switchTo().defaultContent();
+    driver.switchTo().defaultContent();
   }
 
   void runSystemEverDownload(LocalDate fromDate, LocalDate toDate) {
     // 웹페이지 요청
-    chromeDriver.get("https://mfg.systemevererp.com/");
+    driver.get("https://mfg.systemevererp.com/");
 
     // 팝업창 제거
-    chromeDriver.executeScript(
-        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+    driver.executeScript("return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
         .sendKeys("d_itsecurity@inveniacorp.com");
-    chromeDriver.findElementById("inputLoginPwd").sendKeys("a1234");
-    chromeDriver.findElementById("btnLogin").click();
+    driver.findElementById("inputLoginPwd").sendKeys("a1234");
+    driver.findElementById("btnLogin").click();
 
     // 품목 메뉴 선택
-    chromeDriverWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']")))
-        .click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("4"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("19"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("500260"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("4"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("19"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500260"))).click();
 
-    chromeDriverWait
-        .until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500260_iframe")));
+    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500260_iframe")));
 
     // 품목 조회
-    chromeDriverWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-        .click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']"))).click();
 
     // 엑셀 다운로드
-    chromeDriverWait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
-    chromeActions.contextClick(chromeDriver.findElementById("SS1_btnSheetSetting")).perform();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+    wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
+    actions.contextClick(driver.findElementById("SS1_btnSheetSetting")).perform();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
 
-    chromeDriver.switchTo().defaultContent();
+    driver.switchTo().defaultContent();
 
     // Loding Area zIndex 낮추기 (방해됨)
-    chromeDriver.executeScript(
+    driver.executeScript(
         "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
-    chromeDriverWait
-        .until(ExpectedConditions.invisibilityOfElementLocated(By.id("divOpenPageLoading")));
-    chromeDriverWait
-        .until(ExpectedConditions.invisibilityOfElementLocated(By.className("devLoadingArea")));
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("divOpenPageLoading")));
+    wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("devLoadingArea")));
 
     // 거래처 메뉴 선택
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("14"))).click();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("500373"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("14"))).click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500373"))).click();
 
     // 거래처 조회
-    chromeDriverWait
-        .until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500373_iframe")));
-    chromeDriverWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
-        .click();
+    wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500373_iframe")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']"))).click();
 
     // 엑셀 다운로드
-    chromeDriverWait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
-    chromeActions.contextClick(chromeDriver.findElementById("SS1_btnSheetSetting")).perform();
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
+    wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
+    actions.contextClick(driver.findElementById("SS1_btnSheetSetting")).perform();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
   }
 
   String runCozyDownload() throws InterruptedException {
-    chromeDriver.get("http://100.100.16.16:9997");
+    driver.get("http://100.100.16.16:9997");
     // 로그인
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("iEMP_NO")))
-        .sendKeys("damu");
-    chromeDriver.findElementById("iPASSWORD").sendKeys("inveni@2021");
-    chromeDriver.findElementByTagName("button").click();
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("iEMP_NO"))).sendKeys("damu");
+    driver.findElementById("iPASSWORD").sendKeys("inveni@2021");
+    driver.findElementByTagName("button").click();
 
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("from")));
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("from")));
 
     // 엑셀 다운로드
-    chromeDriver.executeScript("Chg_Excel();");
+    driver.executeScript("Chg_Excel();");
 
-    return waitUntilDonwloadCompleted(chromeDriver.getWindowHandle());
+    return waitUntilDonwloadCompleted(driver.getWindowHandle());
   }
 
   void runMallDownload() throws InterruptedException, AWTException {
@@ -318,29 +328,26 @@ public class SeleniumTests {
   }
 
   private String waitUntilDonwloadCompleted(String windowHanle) throws InterruptedException {
-    newTabAndChange(chromeDriver.getWindowHandles().size());
-    chromeDriver.get("chrome://downloads/");
-    chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("file-link")));
+    newTabAndChange(driver.getWindowHandles().size());
+    driver.get("chrome://downloads/");
+    wait.until(ExpectedConditions.presenceOfElementLocated(By.id("file-link")));
     double percentageProgress = 0;
     while (percentageProgress != 100) {
-      percentageProgress = (Long) chromeDriver.executeScript(
+      percentageProgress = (Long) driver.executeScript(
           "return document.querySelector('downloads-manager').shadowRoot.querySelector('#downloadsList downloads-item').shadowRoot.querySelector('#progress').value");
       System.out.println("Completed Percentage" + percentageProgress);
       Thread.sleep(100);
     }
 
-    String fileName = (String) chromeDriver
-        .executeScript("return document.querySelector('downloads-manager')" +
-            ".shadowRoot.querySelector('#downloadsList downloads-item')" +
-            ".shadowRoot.querySelector('div#content #file-link').text");
-    String sourceURL = (String) chromeDriver
-        .executeScript("return document.querySelector('downloads-manager')" +
-            ".shadowRoot.querySelector('#downloadsList downloads-item')" +
-            ".shadowRoot.querySelector('div#content #file-link').href");
-    String donwloadedAt = (String) chromeDriver
-        .executeScript("return document.querySelector('downloads-manager')" +
-            ".shadowRoot.querySelector('#downloadsList downloads-item')" +
-            ".shadowRoot.querySelector('div.is-active.focus-row-active #file-icon-wrapper img').src");
+    String fileName = (String) driver.executeScript("return document.querySelector('downloads-manager')"
+        + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+        + ".shadowRoot.querySelector('div#content #file-link').text");
+    String sourceURL = (String) driver.executeScript("return document.querySelector('downloads-manager')"
+        + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+        + ".shadowRoot.querySelector('div#content #file-link').href");
+    String donwloadedAt = (String) driver.executeScript("return document.querySelector('downloads-manager')"
+        + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+        + ".shadowRoot.querySelector('div.is-active.focus-row-active #file-icon-wrapper img').src");
     System.out.println("Download deatils");
     System.out.println("File Name :-" + fileName);
     System.out.println("Donwloaded path :- " + donwloadedAt);
@@ -349,22 +356,22 @@ public class SeleniumTests {
     System.out.println(fileName);
     System.out.println(sourceURL);
     // close the downloads tab2
-    chromeDriver.close();
+    driver.close();
     // switch back to main window
-    chromeDriver.switchTo().window(windowHanle);
+    driver.switchTo().window(windowHanle);
     return fileName;
   }
 
   void newTabAndChange(int index) throws InterruptedException {
     Thread.sleep(5000);
     // 빈 탭 생성
-    chromeDriver.executeScript("window.open('about:blank','_blank');");
+    driver.executeScript("window.open('about:blank','_blank');");
 
     // 탭 목록 가져오기
-    List<String> tabs = new ArrayList<>(chromeDriver.getWindowHandles());
+    List<String> tabs = new ArrayList<>(driver.getWindowHandles());
 
     // 탭 전환
-    chromeDriver.switchTo().window(tabs.get(index));
+    driver.switchTo().window(tabs.get(index));
   }
 
   List<Item> convertHtmlToItem() throws IOException {

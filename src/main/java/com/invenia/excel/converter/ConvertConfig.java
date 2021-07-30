@@ -18,6 +18,7 @@ public class ConvertConfig {
   private String outputPath;
   private String customerFileName;
   private String itemCodeFileName;
+  private String itemPriceFileName;
   private String contractOrderFileName;
   private String purchaseOrderFileName;
   private String templatePath;

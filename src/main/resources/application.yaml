@@ -50,9 +50,6 @@ batch:
 ### Development
 # Spring
 spring:
-  config:
-    activate:
-      on-profile: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
@@ -80,6 +77,7 @@ convert:
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
     item-code-file-name: "item.xlsx"
+    item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
     purchase-order-file-name: "purchaseorder.xlsx"
 ---
@@ -114,5 +112,6 @@ convert:
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
     item-code-file-name: "item.xlsx"
+    item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
     purchase-order-file-name: "purchaseorder.xlsx"
