@@ -10,7 +10,6 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -29,15 +28,20 @@ public class BatchStepExecution implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long stepExecutionId;
+
   private Long version;
   private String stepName;
+
   @ManyToOne
   @JoinColumn(name = "JOB_EXECUTION_ID")
   private BatchJobExecution jobExecutionId;
+
   private LocalDateTime startTime;
   private LocalDateTime endTime;
+
   @Column(length = 10)
   private String status;
+
   private Long commitCount;
   private Long readCount;
   private Long filterCount;
@@ -46,10 +50,13 @@ public class BatchStepExecution implements Serializable {
   private Long writeSkipCount;
   private Long processSkipCount;
   private Long rollbackCount;
+
   @Column(length = 2500)
   private String exitCode;
+
   @Column(length = 5000)
   private String exitMessage;
+
   private LocalDateTime lastUpdated;
 
   @Override
@@ -70,4 +77,3 @@ public class BatchStepExecution implements Serializable {
     return 1940114563;
   }
 }
-

@@ -6,7 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +24,7 @@ public class BatchJobInstance implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Long jobInstanceId;
+
   private Long version;
   private String jobName;
   private String jobKey;
@@ -47,4 +47,3 @@ public class BatchJobInstance implements Serializable {
     return 262323999;
   }
 }
-

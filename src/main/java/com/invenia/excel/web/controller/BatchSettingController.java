@@ -23,7 +23,8 @@ public class BatchSettingController {
 
   @GetMapping("/settings/batch/{type}")
   public ResponseEntity<BatchEnvironment> batchSettings(@PathVariable("type") String type) {
-    return batchEnvironmentRepository.findById(type)
+    return batchEnvironmentRepository
+        .findById(type)
         .map(env -> ResponseEntity.ok().body(env))
         .orElse(ResponseEntity.notFound().build());
   }

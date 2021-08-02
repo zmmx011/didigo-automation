@@ -28,111 +28,180 @@ public class BatchStep {
   private final BatchConfig batchConfig;
 
   public Step initStep() {
-    return stepBuilderFactory.get("초기화").tasklet((contribution, chunkContext) -> {
-      excelConverter.init();
-      return RepeatStatus.FINISHED;
-    }).build();
+    return stepBuilderFactory
+        .get("초기화")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              excelConverter.init();
+              automation.runErpLogin(batchConfig.getDidigoWebUrl());
+              return RepeatStatus.FINISHED;
+            })
+        .build();
   }
 
-  public Step itemCodeDownloadStep(boolean login) {
-    return stepBuilderFactory.get("품목 다운로드").tasklet((contribution, chunkContext) -> {
-      try {
-        automation.runItemCodeDownload(batchConfig.getDidigoWebUrl(), login);
-      } catch (Exception e) {
-        log.error(e.getLocalizedMessage(), e);
-        contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
-      }
-      return RepeatStatus.FINISHED;
-    }).build();
+  public Step itemCodeDownloadStep() {
+    return stepBuilderFactory
+        .get("품목 다운로드")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              try {
+                automation.runItemCodeDownload();
+              } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+                contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+              }
+              return RepeatStatus.FINISHED;
+            })
+        .build();
+  }
+
+  public Step itemPriceDownloadStep() {
+    return stepBuilderFactory
+        .get("단가 다운로드")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              try {
+                automation.runItemPriceDownload();
+              } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+                contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+              }
+              return RepeatStatus.FINISHED;
+            })
+        .build();
   }
 
   public Step contractOrderDownloadStep() {
-    return stepBuilderFactory.get("수주 다운로드").tasklet((contribution, chunkContext) -> {
-      try {
-        automation.runContractOrderDownload();
-      } catch (Exception e) {
-        log.error(e.getLocalizedMessage(), e);
-        contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
-      }
-      return RepeatStatus.FINISHED;
-    }).build();
+    return stepBuilderFactory
+        .get("수주 다운로드")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              try {
+                automation.runContractOrderDownload();
+              } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+                contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+              }
+              return RepeatStatus.FINISHED;
+            })
+        .build();
   }
 
-  public Step customerDownloadStep(boolean login) {
-    return stepBuilderFactory.get("거래처 다운로드").tasklet((contribution, chunkContext) -> {
-      try {
-        automation.runCustomerDownload(batchConfig.getDidigoWebUrl(), login);
-      } catch (Exception e) {
-        log.error(e.getLocalizedMessage(), e);
-        contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
-      }
-      return RepeatStatus.FINISHED;
-    }).build();
+  public Step customerDownloadStep() {
+    return stepBuilderFactory
+        .get("거래처 다운로드")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              try {
+                automation.runCustomerDownload();
+              } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+                contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+              }
+              return RepeatStatus.FINISHED;
+            })
+        .build();
   }
 
   @Bean
   @JobScope
-  public Step siteDownloadStep(@Value("#{jobParameters['fromDateStr']}") String fromDateStr,
+  public Step siteDownloadStep(
+      @Value("#{jobParameters['fromDateStr']}") String fromDateStr,
       @Value("#{jobParameters['toDateStr']}") String toDateStr) {
-    return stepBuilderFactory.get("데이터 수집").tasklet((contribution, chunkContext) -> {
-      LocalDate fromDate = LocalDate.parse(fromDateStr);
-      LocalDate toDate = LocalDate.parse(toDateStr);
-      try {
-        if (batchConfig.getRunKd()) {
-          automation.newTab();
-          automation.changeTab(batchConfig.getTabIndex() + 1);
-          automation.runKdErpDownload(fromDate, toDate, batchConfig.getKdWebUrl());
-        }
-        if (batchConfig.getRunCozy()) {
-          automation.runCozyDownload(fromDate, toDate, batchConfig.getCozyWebUrl());
-        }
-        if (batchConfig.getRunMall()) {
-          automation.runMallDownload(fromDate, toDate, batchConfig.getMallWebUrl());
-        }
-      } catch (Exception e) {
-        log.error(e.getLocalizedMessage(), e);
-        contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
-      }
-      return RepeatStatus.FINISHED;
-    }).build();
+    return stepBuilderFactory
+        .get("데이터 수집")
+        .tasklet(
+            (contribution, chunkContext) -> {
+              LocalDate fromDate = LocalDate.parse(fromDateStr);
+              LocalDate toDate = LocalDate.parse(toDateStr);
+              try {
+                if (batchConfig.getRunKd()) {
+                  automation.newTab();
+                  automation.runKdErpDownload(fromDate, toDate, batchConfig.getKdWebUrl());
+                  automation.changeTab(0);
+                }
+                if (batchConfig.getRunCozy()) {
+                  automation.newTab();
+                  automation.runCozyDownload(fromDate, toDate, batchConfig.getCozyWebUrl());
+                  automation.changeTab(0);
+                }
+                if (batchConfig.getRunMall()) {
+                  automation.runMallDownload(fromDate, toDate, batchConfig.getMallWebUrl());
+                }
+              } catch (Exception e) {
+                log.error(e.getLocalizedMessage(), e);
+                contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));
+              }
+              return RepeatStatus.FINISHED;
+            })
+        .build();
   }
 
   public Step itemConvertStep() {
-    return stepBuilderFactory.get("품목 변환")
-        .tasklet((contribution, chunkContext) -> convertRunCheck(ExcelConverter::itemConvert, contribution)).build();
+    return stepBuilderFactory
+        .get("품목 단가 변환")
+        .tasklet(
+            (contribution, chunkContext) ->
+                convertRunCheck(ExcelConverter::itemConvert, contribution))
+        .build();
   }
 
-  public Step customerCheckStep() {
-    return stepBuilderFactory.get("거래처 체크").tasklet(
-            (contribution, chunkContext) -> convertRunCheck(ExcelConverter::unregisteredCustomerCheck, contribution))
+  public Step customerConvertStep() {
+    return stepBuilderFactory
+        .get("거래처 변환")
+        .tasklet(
+            (contribution, chunkContext) ->
+                convertRunCheck(ExcelConverter::customerConvert, contribution))
         .build();
   }
 
   public Step contractOrderConvertStep() {
-    return stepBuilderFactory.get("수주 변환")
-        .tasklet((contribution, chunkContext) -> convertRunCheck(ExcelConverter::contractOrderConvert, contribution))
-        .build();
-  }
-
-  public Step purchaseOrderConvertStep() {
-    return stepBuilderFactory.get("발주 변환")
-        .tasklet((contribution, chunkContext) -> convertRunCheck(ExcelConverter::purchaseOrderConvert, contribution))
+    return stepBuilderFactory
+        .get("수주 변환")
+        .tasklet(
+            (contribution, chunkContext) ->
+                convertRunCheck(ExcelConverter::contractOrderConvert, contribution))
         .build();
   }
 
   public Step itemCodeUploadStep() {
-    return stepBuilderFactory.get("품목 업로드")
-        .tasklet((contribution, chunkContext) -> automationRunCheck(Automation::runItemCodeUpload, contribution))
+    return stepBuilderFactory
+        .get("품목 업로드")
+        .tasklet(
+            (contribution, chunkContext) ->
+                automationRunCheck(Automation::runItemCodeUpload, contribution))
+        .build();
+  }
+
+  public Step itemPriceUploadStep() {
+    return stepBuilderFactory
+        .get("단가 업로드")
+        .tasklet(
+            (contribution, chunkContext) ->
+                automationRunCheck(Automation::runItemPriceUpload, contribution))
         .build();
   }
 
   public Step contractOrderUploadStep() {
-    return stepBuilderFactory.get("수주 업로드")
-        .tasklet((contribution, chunkContext) -> automationRunCheck(Automation::runContractOrderUpload, contribution))
+    return stepBuilderFactory
+        .get("수주 업로드")
+        .tasklet(
+            (contribution, chunkContext) ->
+                automationRunCheck(Automation::runContractOrderUpload, contribution))
         .build();
   }
 
-  private RepeatStatus convertRunCheck(ThrowsBiConsumer<ExcelConverter, String> func, StepContribution contribution) {
+  public Step customerUploadStep() {
+    return stepBuilderFactory
+        .get("거래처 업로드")
+        .tasklet(
+            (contribution, chunkContext) ->
+                automationRunCheck(Automation::runCustomerUpload, contribution))
+        .build();
+  }
+
+  private RepeatStatus convertRunCheck(
+      ThrowsBiConsumer<ExcelConverter, String> func, StepContribution contribution) {
     try {
       if (batchConfig.getRunKd()) {
         func.accept(excelConverter, "kd");
@@ -150,12 +219,9 @@ public class BatchStep {
     return RepeatStatus.FINISHED;
   }
 
-  private RepeatStatus automationRunCheck(ThrowsBiConsumer<Automation, String> func, StepContribution contribution) {
+  private RepeatStatus automationRunCheck(
+      ThrowsBiConsumer<Automation, String> func, StepContribution contribution) {
     try {
-      if (batchConfig.getTabIndex() != 0) {
-        batchConfig.setTabIndex(0);
-        automation.changeTab(batchConfig.getTabIndex());
-      }
       if (batchConfig.getRunKd()) {
         func.accept(automation, "kd");
       }

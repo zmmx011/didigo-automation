@@ -24,16 +24,8 @@ server:
 
 # Logging
 logging:
-  level:
-    org:
-      hibernate:
-        SQL: info
-        type:
-          descriptor:
-            sql:
-              BasicBinder: info
   pattern:
-    console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}){blue} %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
+    console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}) %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
 
 # batch
 batch:
@@ -60,10 +52,6 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        type: trace
-        format_sql: true
   output:
     ansi:
       enabled: always
@@ -79,7 +67,6 @@ convert:
     item-code-file-name: "item.xlsx"
     item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
-    purchase-order-file-name: "purchaseorder.xlsx"
 ---
 ### Product
 # Spring
@@ -98,20 +85,15 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        type: trace
-        format_sql: true
 # Convert
 convert:
   config:
     chrome-download-path: "C:/Users/chatServer/Downloads/"
     ie-download-path: "C:/Users/chatServer/Downloads/"
     backup-path: "C:/excel/backup/"
-    template-path: "C:/excel/template/"
+    template-path: "template/"
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
     item-code-file-name: "item.xlsx"
     item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
-    purchase-order-file-name: "purchaseorder.xlsx"

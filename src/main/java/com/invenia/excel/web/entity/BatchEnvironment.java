@@ -22,21 +22,18 @@ import org.hibernate.Hibernate;
 @NoArgsConstructor
 public class BatchEnvironment {
 
-  @Id
-  private String type;
-  @NotNull
-  private String cron;
-  @NotNull
-  private int period;
+  @Id private String type;
+  @NotNull private String cron;
+  @NotNull private int period;
 
   @Override
   public boolean equals(Object o) {
-		if (this == o) {
-			return true;
-		}
-		if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
-			return false;
-		}
+    if (this == o) {
+      return true;
+    }
+    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) {
+      return false;
+    }
     BatchEnvironment that = (BatchEnvironment) o;
 
     return Objects.equals(type, that.type);

@@ -19,12 +19,6 @@ public class BatchConfig {
   private Boolean runKd;
   private Boolean runMall;
 
-  private int tabIndex;
-
-  public int getTabIndexIncrease() {
-    return ++tabIndex;
-  }
-
   public static JobParameters getJobParameters(String fromDate, String toDate) {
     return new JobParametersBuilder()
         .addString("dateTime", LocalDateTime.now().toString())

@@ -27,9 +27,11 @@ public class BatchJobExecutionParams implements Serializable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long jobExecutionParamsId;
+
   @ManyToOne
   @JoinColumn(name = "JOB_EXECUTION_ID")
   private BatchJobExecution jobExecutionId;
+
   private String typeCd;
   private String keyName;
   private String stringVal;
@@ -56,4 +58,3 @@ public class BatchJobExecutionParams implements Serializable {
     return 1009468259;
   }
 }
-

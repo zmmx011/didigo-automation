@@ -58,7 +58,7 @@
 </template>
 
 <script>
-import {mapMutations, mapGetters} from "vuex";
+import {mapGetters, mapMutations} from "vuex";
 
 export default {
   name: "JobStartDialog",
@@ -110,11 +110,9 @@ export default {
         job: {}
       },
       jobSelect: [
-        {text: '전체', api: 'all',},
-        {text: '품목 등록', api: 'item',},
         {text: '수주 등록', api: 'contract',},
-        {text: '발주 변환', api: 'purchase',},
-        {text: '거래처 확인', api: 'customer',},
+        {text: '품목 단가 등록', api: 'item',},
+        {text: '거래처 등록', api: 'customer',},
       ],
     }
   },
