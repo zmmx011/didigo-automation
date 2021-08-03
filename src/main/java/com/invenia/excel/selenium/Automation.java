@@ -1,10 +1,13 @@
 package com.invenia.excel.selenium;
 
+import com.invenia.excel.batch.BatchMail;
 import com.invenia.excel.converter.ConvertConfig;
 import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -38,11 +41,11 @@ public class Automation {
   private ChromeDriver driver;
   private WebDriverWait wait;
   private Actions actions;
+  private final BatchMail mail;
 
   public void setup() throws IOException {
-    Resource resource = new ClassPathResource("driver/chrome_92.0.4515.43.exe");
     // WebDriver 경로 설정
-    System.setProperty("webdriver.chrome.driver", resource.getFile().getPath());
+    System.setProperty("webdriver.chrome.driver", "C:/excel/driver/chrome_92.0.4515.43.exe");
 
     // WebDriver 옵션 설정
     HashMap<String, Object> prefs = new HashMap<>();
@@ -54,7 +57,6 @@ public class Automation {
 
     ChromeOptions options = new ChromeOptions();
     options.setExperimentalOption("prefs", prefs);
-    options.setExperimentalOption("useAutomationExtension", false);
     options.addArguments("start-maximized");
     options.addArguments("disable-infobars");
     options.addArguments("--safebrowsing-disable-download-protection");
@@ -97,9 +99,8 @@ public class Automation {
 
   public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url)
       throws InterruptedException, IOException {
-    Resource resource = new ClassPathResource("driver/ie_3.141.59.0.exe");
     // WebDriver 경로 설정
-    System.setProperty("webdriver.ie.driver", resource.getFile().getPath());
+    System.setProperty("webdriver.ie.driver", "C:/excel/driver/ie_3.141.59.0.exe");
 
     WebDriver ieDriver = new InternetExplorerDriver();
     WebDriverWait ieWait = new WebDriverWait(ieDriver, 30);
@@ -129,9 +130,8 @@ public class Automation {
             "return document.getElementById('contractEndDate_con').value = '"
                 + toDate.format(DateTimeFormatter.ofPattern("yyyy.MM.dd"))
                 + "';");
-    ieWait
-        .until(ExpectedConditions.presenceOfElementLocated(By.id("DHTMLSuite_menuItem1")))
-        .click();
+    /* 조회 버튼을 누르지 않아도 기간 설정 값을 기준으로 엑셀을 생성함.
+    ieWait.until(ExpectedConditions.presenceOfElementLocated(By.id("DHTMLSuite_menuItem1"))).click();*/
     Thread.sleep(5000);
     // 엑셀 다운로드
     ieWait.until(ExpectedConditions.presenceOfElementLocated(By.id("DHTMLSuite_menuItem2")));
@@ -274,12 +274,12 @@ public class Automation {
     driver.switchTo().defaultContent();
   }
 
-  public void runContractOrderDownload() {
+  public void runContractOrderDownload(LocalDate fromDate, LocalDate toDate) {
     // 영업관리
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7060']")))
         .click();
 
-    // 수주관리 - 수주 - 수주입력업로드
+    // 수주관리 - 수주 - 수주조회
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("5"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("29"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500586"))).click();
@@ -288,10 +288,23 @@ public class Automation {
     // 사업단위
     new Select(driver.findElementById("txtBizUnitName_ul")).selectByVisibleText("디디고");
 
-    // 기간
+    // 수주구분
+    new Select(driver.findElementById("txtOrderKindName_ul")).selectByVisibleText("온라인영업");
+
+    // 수주일
     driver.executeScript(
         "return document.getElementById('datOrderDateFr_dat').value = '"
-            + LocalDate.now().minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            + fromDate.minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            + "';");
+
+    // 납기일
+    driver.executeScript(
+        "return document.getElementById('datDVDateFr_dat').value = '"
+            + fromDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            + "';");
+    driver.executeScript(
+        "return document.getElementById('datDVDateTo_dat').value = '"
+            + toDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
             + "';");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
@@ -439,11 +452,9 @@ public class Automation {
     }
   }
 
-  public void runCustomerUpload(String siteName) throws AWTException, InterruptedException {
+  public void runCustomerUpload(String siteName) throws Exception {
     int size = config.getConvertResult().get(siteName).getCustomerSize();
     log.info("거래처 신규 등록 " + size + "건");
-    // todo 거래처 메일 발송
-
     if (size > 0) {
       Robot robot = new Robot();
       // 전사관리
@@ -462,9 +473,8 @@ public class Automation {
       robot.keyPress(KeyEvent.VK_ESCAPE);
       Thread.sleep(2000);
       robot.keyRelease(KeyEvent.VK_ESCAPE);
-      driver
-          .findElementById("FrmWDAItemUpload_FileDialog_file")
-          .sendKeys(config.getOutputPath(siteName, config.getCustomerFileName()));
+      String customerFilePath = config.getOutputPath(siteName, config.getCustomerFileName());
+      driver.findElementById("FrmWDACustUpload_FileDialog_file").sendKeys(customerFilePath);
       driver.findElementById("btnGetData_btn").click();
       Thread.sleep(5000);
       wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
@@ -472,6 +482,7 @@ public class Automation {
       Thread.sleep(5000);
       driver.switchTo().defaultContent();
       log.info(siteName + " 거래처 엑셀 업로드 완료");
+      mail.sendUnregisteredCustomerMail(customerFilePath, size);
     }
   }
 

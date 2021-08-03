@@ -1,6 +1,6 @@
 package com.invenia.excel.converter;
 
-import com.invenia.excel.common.AnsiColor;
+import com.invenia.excel.common.AnsiColorEscapeSequence;
 import com.invenia.excel.converter.dto.ConvertResult;
 import com.invenia.excel.converter.dto.Customer;
 import com.invenia.excel.converter.dto.Item;
@@ -133,6 +133,7 @@ public class ExcelConverter {
         readExcel(
             config.getTemplatePath("systemever/contractorder.xml"),
             config.getContractOrderFilePath());
+    log.debug(AnsiColorEscapeSequence.RED.es() + "수주 조회 : " + orders.size());
     // 수주 중복 제거
     List<Item> distinctOrders =
         Objects.requireNonNull(readItems(siteName)).stream()
@@ -140,7 +141,7 @@ public class ExcelConverter {
                 item ->
                     orders.stream()
                         .filter(order -> !order.getRemarkM().equals(""))
-                        .noneMatch(x -> item.getItemNo().equals(x.getRemarkM())))
+                        .noneMatch(order -> item.getRemarkM().equals(order.getRemarkM())))
             .collect(Collectors.toList());
     // 수주 엑셀 생성
     String contractOrderFileName = config.getContractOrderFileName();
@@ -151,6 +152,8 @@ public class ExcelConverter {
             Paths.get(config.getOutputPath(siteName, contractOrderFileName)));
 
     config.getConvertResult().get(siteName).setContractOrderSize(size);
+
+    log.debug(AnsiColorEscapeSequence.RED.es() + "수주 중복 제거 완료 : " + size);
   }
 
   public void customerConvert(String siteName) throws Exception {
@@ -173,7 +176,8 @@ public class ExcelConverter {
             .distinct()
             .collect(Collectors.toList());
 
-    log.info(AnsiColor.MAGENTA.es() + "미등록 거래처 " + unregisteredCustomers.size() + "건");
+    log.info(
+        AnsiColorEscapeSequence.MAGENTA.es() + "미등록 거래처 " + unregisteredCustomers.size() + "건");
 
     // 미등록 공급사
     List<Customer> unregisteredSuppliers =
@@ -187,7 +191,8 @@ public class ExcelConverter {
             .distinct()
             .collect(Collectors.toList());
 
-    log.info(AnsiColor.MAGENTA.es() + "미등록 공급사 " + unregisteredSuppliers.size() + "건");
+    log.info(
+        AnsiColorEscapeSequence.MAGENTA.es() + "미등록 공급사 " + unregisteredSuppliers.size() + "건");
 
     unregisteredCustomers.addAll(unregisteredSuppliers);
 

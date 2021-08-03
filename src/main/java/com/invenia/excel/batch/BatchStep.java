@@ -71,13 +71,19 @@ public class BatchStep {
         .build();
   }
 
-  public Step contractOrderDownloadStep() {
+  @Bean
+  @JobScope
+  public Step contractOrderDownloadStep(
+      @Value("#{jobParameters['fromDateStr']}") String fromDateStr,
+      @Value("#{jobParameters['toDateStr']}") String toDateStr) {
     return stepBuilderFactory
         .get("수주 다운로드")
         .tasklet(
             (contribution, chunkContext) -> {
+              LocalDate fromDate = LocalDate.parse(fromDateStr);
+              LocalDate toDate = LocalDate.parse(toDateStr);
               try {
-                automation.runContractOrderDownload();
+                automation.runContractOrderDownload(fromDate, toDate);
               } catch (Exception e) {
                 log.error(e.getLocalizedMessage(), e);
                 contribution.setExitStatus(new ExitStatus("FAILED", e.toString()));

@@ -11,6 +11,7 @@
         <mapping row="1" col="7">item.itemName</mapping>
         <mapping row="1" col="8">item.qty</mapping>
         <mapping row="1" col="9">item.price</mapping>
+        <mapping row="1" col="10">item.optionAmt</mapping>
         <mapping row="1" col="12">item.purAmt</mapping>
         <mapping row="1" col="13">item.curAmt</mapping>
         <mapping row="1" col="34">item.custName</mapping>

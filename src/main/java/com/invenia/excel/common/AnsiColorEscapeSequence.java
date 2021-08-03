@@ -3,7 +3,7 @@ package com.invenia.excel.common;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum AnsiColor {
+public enum AnsiColorEscapeSequence {
   BLACK("\u001b[30m"),
   RED("\u001b[31m"),
   GREEN("\u001b[32m"),

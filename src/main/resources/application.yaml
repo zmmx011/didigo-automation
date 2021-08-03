@@ -1,5 +1,4 @@
 ### Common
-# Spring
 spring:
   mail:
     host: 100.100.10.142
@@ -18,16 +17,16 @@ spring:
     jdbc:
       initialize-schema: always
 
-# Server
 server:
   port: 8080
 
-# Logging
 logging:
   pattern:
     console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}) %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
+  level:
+    root: info
+    com.invenia.excel: debug
 
-# batch
 batch:
   config:
     runCozy: false
@@ -40,8 +39,10 @@ batch:
 
 ---
 ### Development
-# Spring
 spring:
+  config:
+    activate:
+      on-profile: dev
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/automation?characterEncoding=UTF-8&serverTimezone=UTC
@@ -55,7 +56,9 @@ spring:
   output:
     ansi:
       enabled: always
-# Convert
+batch:
+  config:
+    run-send-mail: false
 convert:
   config:
     chrome-download-path: "W:/Downloads/"
@@ -69,7 +72,6 @@ convert:
     contract-order-file-name: "contractorder.xlsx"
 ---
 ### Product
-# Spring
 spring:
   config:
     activate:
@@ -85,13 +87,15 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-# Convert
+batch:
+  config:
+    run-send-mail: true
 convert:
   config:
     chrome-download-path: "C:/Users/chatServer/Downloads/"
     ie-download-path: "C:/Users/chatServer/Downloads/"
     backup-path: "C:/excel/backup/"
-    template-path: "template/"
+    template-path: "C:/excel/template/"
     output-path: "C:/excel/output/"
     customer-file-name: "customer.xlsx"
     item-code-file-name: "item.xlsx"

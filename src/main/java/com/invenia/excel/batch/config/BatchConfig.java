@@ -10,6 +10,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties("batch.config")
 public class BatchConfig {
 
+  private Boolean runSendMail;
+
   private String didigoWebUrl;
   private String cozyWebUrl;
   private String kdWebUrl;

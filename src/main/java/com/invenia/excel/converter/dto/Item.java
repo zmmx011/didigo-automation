@@ -24,6 +24,7 @@ public class Item {
   private String unitName; // 단위
   private String qty; // 수량
   private String price; // 단가
+  private String optionAmt; // 옵션가
   private String smVatKindName; // 부가세구분
   private String curAmt; // 판매금액
   private String purAmt; // 매입금액

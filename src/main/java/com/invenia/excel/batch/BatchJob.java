@@ -1,7 +1,7 @@
 package com.invenia.excel.batch;
 
 import com.invenia.excel.batch.config.BatchConfig;
-import com.invenia.excel.common.AnsiColor;
+import com.invenia.excel.common.AnsiColorEscapeSequence;
 import com.invenia.excel.converter.ExcelConverter;
 import com.invenia.excel.selenium.Automation;
 import java.io.IOException;
@@ -105,7 +105,7 @@ public class BatchJob {
         .next(step.customerDownloadStep()) // 거래처 다운로드
         .on(ExitStatus.FAILED.getExitCode())
         .fail()
-        .next(step.contractOrderDownloadStep()) // 수주 다운로드
+        .next(step.contractOrderDownloadStep(null, null)) // 수주 다운로드
         .on(ExitStatus.FAILED.getExitCode())
         .fail()
         .next(step.siteDownloadStep(null, null)) // 데이터 수집
@@ -140,6 +140,7 @@ public class BatchJob {
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
+      log.info("runSendMail : " + batchConfig.getRunSendMail());
       log.info(
           "runCozy : "
               + batchConfig.getRunCozy()
@@ -159,9 +160,9 @@ public class BatchJob {
     public void afterJob(JobExecution jobExecution) {
       // Automation Quit
       automation.quitAutomation();
-      log.info(AnsiColor.MAGENTA.es() + jobExecution.getExitStatus());
+      log.info(AnsiColorEscapeSequence.MAGENTA.es() + jobExecution.getExitStatus());
       // 실패시 메일 발송
-      if (jobExecution.getExitStatus() == ExitStatus.FAILED) {
+      if (jobExecution.getExitStatus().equals(ExitStatus.FAILED)) {
         mail.sendJobFailureMail(jobExecution);
       }
       try {
