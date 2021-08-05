@@ -3,7 +3,7 @@ spring:
   mail:
     host: 100.100.10.142
     username: itsecurity@inveniacorp.com
-    password: inveni@2020
+    password: inveni@2021
     properties:
       mail:
         smtp:
