@@ -6,8 +6,6 @@ import java.awt.AWTException;
 import java.awt.Robot;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -15,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -28,8 +25,6 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -98,7 +93,7 @@ public class Automation {
   }
 
   public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url)
-      throws InterruptedException, IOException {
+      throws InterruptedException {
     // WebDriver 경로 설정
     System.setProperty("webdriver.ie.driver", "C:/excel/driver/ie_3.141.59.0.exe");
 
@@ -222,7 +217,7 @@ public class Automation {
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
         .sendKeys("d_itsecurity@inveniacorp.com");
-    driver.findElementById("inputLoginPwd").sendKeys("a1234");
+    driver.findElementById("inputLoginPwd").sendKeys("inveni@2021");
     driver.findElementById("btnLogin").click();
 
     // Loding Area zIndex 낮추기 (방해됨)
@@ -512,9 +507,8 @@ public class Automation {
 
   private ExpectedCondition<Boolean> isCanvasBlank(final String canvasId) {
     return new ExpectedCondition<>() {
-      @NullableDecl
       @Override
-      public Boolean apply(@NullableDecl WebDriver driver) {
+      public Boolean apply(WebDriver driver) {
         return (Boolean)
             ((JavascriptExecutor) driver)
                 .executeScript(
