@@ -1,7 +1,18 @@
 package com.invenia.excel;
 
 import com.invenia.excel.converter.dto.Item;
-import org.checkerframework.checker.nullness.compatqual.NullableDecl;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -20,18 +31,6 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 @ActiveProfiles("dev")
 @SpringBootTest
 public class SeleniumTests {
@@ -44,20 +43,19 @@ public class SeleniumTests {
 
   public static ExpectedCondition<Boolean> isCanvasBlank(final String canvasId) {
     return new ExpectedCondition<>() {
-      @NullableDecl
       @Override
-      public Boolean apply(@NullableDecl WebDriver chromeDriver) {
+      public Boolean apply(WebDriver chromeDriver) {
         return (Boolean)
-                ((JavascriptExecutor) chromeDriver)
-                        .executeScript(
-                                "const canvas = document.getElementById('"
-                                        + canvasId
-                                        + "');"
-                                        + "const context = canvas.getContext('2d');"
-                                        + "const pixelBuffer = new Uint32Array("
-                                        + "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer"
-                                        + ");"
-                                        + "return pixelBuffer.some(color => color === 0);");
+            ((JavascriptExecutor) chromeDriver)
+                .executeScript(
+                    "const canvas = document.getElementById('"
+                        + canvasId
+                        + "');"
+                        + "const context = canvas.getContext('2d');"
+                        + "const pixelBuffer = new Uint32Array("
+                        + "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer"
+                        + ");"
+                        + "return pixelBuffer.some(color => color === 0);");
       }
 
       @Override
@@ -79,21 +77,21 @@ public class SeleniumTests {
 
     // 팝업창 제거
     driver.executeScript(
-            "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
-            .sendKeys("d_itsecurity@inveniacorp.com");
+        .sendKeys("d_itsecurity@inveniacorp.com");
     driver.findElementById("inputLoginPwd").sendKeys("a1234");
     driver.findElementById("btnLogin").click();
 
     // Loding Area zIndex 낮추기 (방해됨)
     driver.executeScript(
-            "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
+        "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
     // 구매 메뉴 선택
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']")))
-            .click();
+        .click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("1"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("9"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("501868"))).click();
@@ -115,7 +113,7 @@ public class SeleniumTests {
     robot.keyRelease(KeyEvent.VK_CONTROL);
     Thread.sleep(2000);
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='2']")))
-            .click();
+        .click();
 
     driver.switchTo().defaultContent();
     Thread.sleep(50000);
@@ -128,8 +126,8 @@ public class SeleniumTests {
   void chromeConfig() {
     // driver
     Path path =
-            Paths.get(
-                    System.getProperty("user.dir"), "src/main/resources/deploy/driver/chromedriver.exe");
+        Paths.get(
+            System.getProperty("user.dir"), "src/main/resources/deploy/driver/chromedriver.exe");
 
     // WebDriver 경로 설정
     System.setProperty("webdriver.chrome.driver", path.toString());
@@ -166,8 +164,8 @@ public class SeleniumTests {
   void ieConfig() {
     // chromeDriver
     Path path =
-            Paths.get(
-                    System.getProperty("user.dir"), "src/main/resources/chromeDriver/iechromeDriver.exe");
+        Paths.get(
+            System.getProperty("user.dir"), "src/main/resources/chromeDriver/iechromeDriver.exe");
 
     // WebDriver 경로 설정
     System.setProperty("webchromeDriver.ie.chromeDriver", path.toString());
@@ -184,21 +182,21 @@ public class SeleniumTests {
 
     // 팝업창 제거
     driver.executeScript(
-            "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
-            .sendKeys("m_itsecurity@inveniacorp.com");
+        .sendKeys("m_itsecurity@inveniacorp.com");
     driver.findElementById("inputLoginPwd").sendKeys("Invenia_0041");
     driver.findElementById("btnLogin").click();
 
     // Loding Area zIndex 낮추기 (방해됨)
     driver.executeScript(
-            "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
+        "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
     // 구매 메뉴 선택
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7100']")))
-            .click();
+        .click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("3"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("18"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("501579"))).click();
@@ -206,13 +204,13 @@ public class SeleniumTests {
     // 구매발주품목 조회
     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("501579_iframe")));
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtCustName_txt")))
-            .sendKeys("디디고");
+        .sendKeys("디디고");
     // chromeDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("datPODateFr_dat"))).sendKeys("2021-02-01");
 
     driver.executeScript("return document.getElementById('datPODateFr_dat').value = '2021-02-01';");
 
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-            .click();
+        .click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS_cvp_vp")));
@@ -228,17 +226,17 @@ public class SeleniumTests {
 
     // 팝업창 제거
     driver.executeScript(
-            "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
+        "return document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
 
     // 로그인
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("txtLoginId")))
-            .sendKeys("d_itsecurity@inveniacorp.com");
+        .sendKeys("d_itsecurity@inveniacorp.com");
     driver.findElementById("inputLoginPwd").sendKeys("a1234");
     driver.findElementById("btnLogin").click();
 
     // 품목 메뉴 선택
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[moduleseq='7010']")))
-            .click();
+        .click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("4"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("19"))).click();
     wait.until(ExpectedConditions.presenceOfElementLocated(By.id("500260"))).click();
@@ -247,7 +245,7 @@ public class SeleniumTests {
 
     // 품목 조회
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='0']")))
-            .click();
+        .click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
@@ -258,7 +256,7 @@ public class SeleniumTests {
 
     // Loding Area zIndex 낮추기 (방해됨)
     driver.executeScript(
-            "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
+        "return document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
 
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.id("divOpenPageLoading")));
     wait.until(ExpectedConditions.invisibilityOfElementLocated(By.className("devLoadingArea")));
@@ -271,7 +269,7 @@ public class SeleniumTests {
     // 거래처 조회
     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(By.id("500373_iframe")));
     wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li[colindex='1']")))
-            .click();
+        .click();
 
     // 엑셀 다운로드
     wait.until(ExpectedConditions.not(isCanvasBlank("SS1_cvp_vp")));
@@ -298,15 +296,15 @@ public class SeleniumTests {
     ieDriver.navigate().to("https://admin.didigomall.com:444/");
     // 로그인
     ieDriverWait
-            .until(ExpectedConditions.presenceOfElementLocated(By.name("MBR_ID")))
-            .sendKeys("it01");
+        .until(ExpectedConditions.presenceOfElementLocated(By.name("MBR_ID")))
+        .sendKeys("it01");
     ieDriver.findElement(By.name("PWD")).sendKeys("qlalfqjsgh!@34");
     ((JavascriptExecutor) ieDriver).executeScript("login();");
 
     // 페이지이동 * 주문관리 -> 세금계산서 -> 회원별 정산
     ieDriver
-            .navigate()
-            .to("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
+        .navigate()
+        .to("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
 
     // 엑셀 다운로드
     ieDriverWait.until(ExpectedConditions.presenceOfElementLocated(By.id("DHTMLSuite_menuItem2")));
@@ -332,31 +330,31 @@ public class SeleniumTests {
     double percentageProgress = 0;
     while (percentageProgress != 100) {
       percentageProgress =
-              (Long)
-                      driver.executeScript(
-                              "return document.querySelector('downloads-manager').shadowRoot.querySelector('#downloadsList downloads-item').shadowRoot.querySelector('#progress').value");
+          (Long)
+              driver.executeScript(
+                  "return document.querySelector('downloads-manager').shadowRoot.querySelector('#downloadsList downloads-item').shadowRoot.querySelector('#progress').value");
       System.out.println("Completed Percentage" + percentageProgress);
       Thread.sleep(100);
     }
 
     String fileName =
-            (String)
-                    driver.executeScript(
-                            "return document.querySelector('downloads-manager')"
-                                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
-                                    + ".shadowRoot.querySelector('div#content #file-link').text");
+        (String)
+            driver.executeScript(
+                "return document.querySelector('downloads-manager')"
+                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+                    + ".shadowRoot.querySelector('div#content #file-link').text");
     String sourceURL =
-            (String)
-                    driver.executeScript(
-                            "return document.querySelector('downloads-manager')"
-                                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
-                                    + ".shadowRoot.querySelector('div#content #file-link').href");
+        (String)
+            driver.executeScript(
+                "return document.querySelector('downloads-manager')"
+                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+                    + ".shadowRoot.querySelector('div#content #file-link').href");
     String donwloadedAt =
-            (String)
-                    driver.executeScript(
-                            "return document.querySelector('downloads-manager')"
-                                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
-                                    + ".shadowRoot.querySelector('div.is-active.focus-row-active #file-icon-wrapper img').src");
+        (String)
+            driver.executeScript(
+                "return document.querySelector('downloads-manager')"
+                    + ".shadowRoot.querySelector('#downloadsList downloads-item')"
+                    + ".shadowRoot.querySelector('div.is-active.focus-row-active #file-icon-wrapper img').src");
     System.out.println("Download deatils");
     System.out.println("File Name :-" + fileName);
     System.out.println("Donwloaded path :- " + donwloadedAt);
@@ -396,19 +394,19 @@ public class SeleniumTests {
     Document doc = Jsoup.parse(html, "UTF-8");
     List<Item> items = new ArrayList<>();
     doc.select("tbody").select("tr").stream()
-            .filter(y -> !"".equals(y.children().get(0).text()))
-            .forEach(
-                    x -> {
-                      Elements elements = x.children();
-                      Item item = new Item();
-                      item.setIdxNo(elements.get(0).text());
-                      item.setOrderDate(elements.get(2).text());
-                      item.setItemNo(elements.get(4).text());
-                      item.setItemName(elements.get(4).text());
-                      item.setQty(elements.get(6).text());
-                      item.setPrice(elements.get(7).text());
-                      items.add(item);
-                    });
+        .filter(y -> !"".equals(y.children().get(0).text()))
+        .forEach(
+            x -> {
+              Elements elements = x.children();
+              Item item = new Item();
+              item.setIdxNo(elements.get(0).text());
+              item.setOrderDate(elements.get(2).text());
+              item.setItemNo(elements.get(4).text());
+              item.setItemName(elements.get(4).text());
+              item.setQty(elements.get(6).text());
+              item.setPrice(elements.get(7).text());
+              items.add(item);
+            });
 
     return items;
   }
