@@ -4,12 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.SelenideElement;
+import com.codeborne.selenide.files.FileFilters;
+import com.invenia.excel.selenide.canvas.CanvasUtils;
+import com.invenia.excel.selenide.canvas.IsCanvasLengthChanged;
+import java.io.File;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
@@ -18,88 +24,83 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 public class SelenideTests {
 
-  LeftMenu leftMenu = new LeftMenu();
+  MainPage main = new MainPage();
+  LeftMenu menu = new LeftMenu();
 
   @BeforeAll
-  public static void setUpClass() {
+  public static void setup() {
     Configuration.fastSetValue = true;
     Configuration.timeout = 10000;
     Configuration.headless = true;
+    Configuration.proxyEnabled = true;
+    Configuration.fileDownload = FileDownloadMode.PROXY;
   }
 
-  @Test
+  @AfterAll
+  public static void close() {
+    Selenide.closeWebDriver();
+  }
+
+  @BeforeEach
   public void login() {
+    LoginPage page = new LoginPage();
     Selenide.open("https://mfg.systemevererp.com/");
-    LoginPage loginPage = new LoginPage();
-    Selenide.executeJavaScript("document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
-    loginPage.loginId.val("d_itsecurity@inveniacorp.com");
-    loginPage.loginPwd.val("inveni@2021");
-    loginPage.loginBtn.click();
+    Selenide.executeJavaScript("document.querySelectorAll('.popuploginPage').forEach(el => el.remove());");
+    page.loginId.val("d_itsecurity@inveniacorp.com");
+    page.loginPwd.val("inveni@2021");
+    page.loginBtn.click();
   }
 
   @Test
-  public void itemCodeDownload() throws Exception {
-    login();
-    // 메뉴 선택
-    leftMenu.corporateModule.click();
-    leftMenu.itemMenu.click();
-    leftMenu.itemGroup.click();
-    leftMenu.itemInquiry.click();
-    waitLoading();
+  @DisplayName("품목 다운로드")
+  public void itemCodeDownloadTest() throws Exception {
+    // 전사 관리 - 품목 관리 - 품목 등록 - 품목 조회
+    menu.corporateModule.click();
+    menu.itemMenu.click();
+    menu.itemGroup.click();
+    menu.item.click();
+    main.waitLoading();
 
     // 품목 다운로드
-    Selenide.switchTo().frame(ItemCodeDownload.frame);
-    ItemCodeDownload.inquiryBtn.click();
+    ItemCodeDownloadFrame frame = new ItemCodeDownloadFrame();
+    Selenide.switchTo().frame(frame.frame);
+    SelenideElement canvas = frame.canvas;
+    Long canvasLength = CanvasUtils.getCanvasLength(canvas);
+    frame.inquiryBtn.click();
+    canvas.shouldBe(new IsCanvasLengthChanged(canvasLength));
+    frame.sheetSettingBtn.contextClick();
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    Selenide.switchTo().defaultContent();
+    assertTrue(downloadFile.exists());
   }
 
   @Test
-  public void itemCodeUpload() throws Exception {
-    login();
-    // 메뉴 선택
-    leftMenu.corporateModule.click();
-    leftMenu.itemMenu.click();
-    leftMenu.itemGroup.click();
-    leftMenu.itemUploadProgram.click();
-    waitLoading();
+  @DisplayName("구매 단가 다운로드")
+  public void itemPriceDownloadTest() {
+    // 구매 관리 - 구매 기준 정보 - 구매 단가 - 구매 단가 등록
+  }
+
+  @Test
+  @DisplayName("품목 업로드")
+  public void itemCodeUploadTest() throws Exception {
+    // 전사 관리 - 품목 관리 - 품목 등록 - 품목 등록 업로드
+    menu.corporateModule.click();
+    menu.itemMenu.click();
+    menu.itemGroup.click();
+    menu.itemUpload.click();
+    main.waitLoading();
     // 품목 업로드
-    Selenide.switchTo().frame(ItemCodeUpload.frame);
-    ItemCodeUpload.getFileBtn.click();
-    ItemCodeUpload.file.uploadFile(new ClassPathResource("item-upload/RptWDAItemUpload.xlsx").getFile());
-    ItemCodeUpload.getDataBtn.click();
-    waitLoading();
-    ItemCodeUpload.saveBtn.click();
-    waitLoading();
+    ItemCodeUploadFrame frame = new ItemCodeUploadFrame();
+    Selenide.switchTo().frame(frame.frame);
+    frame.getFileBtn.click();
+    frame.file.uploadFile(new ClassPathResource("item-upload/RptWDAItemUpload.xlsx").getFile());
+    Long canvasLength = CanvasUtils.getCanvasLength(frame.canvas);
+    frame.getDataBtn.click();
+    frame.canvas.shouldBe(new IsCanvasLengthChanged(canvasLength));
+    frame.saveBtn.click();
+    main.waitLoading();
     Selenide.switchTo().defaultContent();
-    assertTrue(ItemCodeUpload.msgBtnOk.shouldBe(Condition.visible).isDisplayed());
-  }
-
-  private void waitLoading() throws InterruptedException {
-    Thread.sleep(1000);
-    MainPage.loadingPage.shouldNot(Condition.visible);
-  }
-
-  private ExpectedCondition<Boolean> isCanvasBlank(final String canvasId) {
-    return new ExpectedCondition<>() {
-      @Override
-      public Boolean apply(WebDriver driver) {
-        return (Boolean)
-            ((JavascriptExecutor) driver)
-                .executeScript(
-                    "const canvas = document.getElementById('"
-                        + canvasId
-                        + "');"
-                        + "const context = canvas.getContext('2d');"
-                        + "const pixelBuffer = new Uint32Array("
-                        + "    context.getImageData(0, 0, canvas.width, canvas.height).data.buffer"
-                        + ");"
-                        + "return pixelBuffer.some(color => color === 0);");
-      }
-
-      @Override
-      public String toString() {
-        return "canvasId : " + canvasId;
-      }
-    };
+    assertTrue(frame.msgBtnOk.shouldBe(Condition.visible).isDisplayed());
   }
 }
 

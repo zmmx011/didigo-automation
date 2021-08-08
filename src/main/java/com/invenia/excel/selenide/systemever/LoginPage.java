@@ -7,7 +7,7 @@ import org.openqa.selenium.By;
 
 public class LoginPage {
 
-  protected SelenideElement loginId = $(By.id("txtLoginId"));
-  protected SelenideElement loginPwd = $(By.id("inputLoginPwd"));
-  protected SelenideElement loginBtn = $(By.id("btnLogin"));
+  public SelenideElement loginId = $(By.id("txtLoginId"));
+  public SelenideElement loginPwd = $(By.id("inputLoginPwd"));
+  public SelenideElement loginBtn = $(By.id("btnLogin"));
 }

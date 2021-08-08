@@ -41,6 +41,7 @@ dependencies {
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-chrome-driver', version: '3.141.59'
     implementation group: 'org.seleniumhq.selenium', name: 'selenium-ie-driver', version: '3.141.59'
     implementation group: 'com.codeborne', name: 'selenide', version: '5.23.2'
+    implementation 'com.browserup:browserup-proxy-core:2.1.2'
     implementation group: 'com.fasterxml.jackson.datatype', name: 'jackson-datatype-jsr310', version: '2.12.3'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
