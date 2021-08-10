@@ -140,7 +140,6 @@ public class BatchJob {
 
     @Override
     public void beforeJob(JobExecution jobExecution) {
-      log.info("runSendMail : " + batchConfig.getRunSendMail());
       log.info(
           "runCozy : "
               + batchConfig.getRunCozy()

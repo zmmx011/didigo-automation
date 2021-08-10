@@ -5,7 +5,7 @@ import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.By;
 
-public class ItemCodeDownloadFrame {
+public class ItemInquiryFrame {
 
   public SelenideElement frame = $(By.id("500260_iframe"));
   public SelenideElement inquiryBtn = $(By.cssSelector("li[colindex='0']"));

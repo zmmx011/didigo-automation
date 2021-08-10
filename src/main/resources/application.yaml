@@ -24,7 +24,7 @@ logging:
   pattern:
     console: "%clr(%d{yy-MM-dd E HH:mm:ss.SSS}) %clr(%-5p) %clr([%8.15t]){cyan} %clr(%-40.40logger{0}){blue} %clr(:){red} %clr(%m){faint}%n"
   level:
-    root: info
+    root: warn
     com.invenia.excel: debug
 
 batch:
@@ -56,9 +56,6 @@ spring:
   output:
     ansi:
       enabled: always
-batch:
-  config:
-    run-send-mail: false
 convert:
   config:
     chrome-download-path: "W:/Downloads/"
@@ -70,6 +67,9 @@ convert:
     item-code-file-name: "item.xlsx"
     item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
+mail:
+  recipients:
+    - damu@inveniacorp.com
 ---
 ### Product
 spring:
@@ -87,9 +87,6 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-batch:
-  config:
-    run-send-mail: true
 convert:
   config:
     chrome-download-path: "C:/Users/chatServer/Downloads/"
@@ -101,3 +98,9 @@ convert:
     item-code-file-name: "item.xlsx"
     item-price-file-name: "price.xlsx"
     contract-order-file-name: "contractorder.xlsx"
+mail:
+  recipients:
+    - ssu@didigo.com
+    - redssmile@didigo.com
+  carbon-copies:
+    - damu@inveniacorp.com

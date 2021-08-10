@@ -1,6 +1,7 @@
 package com.invenia.excel.batch;
 
-import com.invenia.excel.batch.config.BatchConfig;
+import com.invenia.excel.batch.config.MailConfig;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 import javax.activation.DataHandler;
@@ -8,7 +9,6 @@ import javax.activation.FileDataSource;
 import javax.mail.Message.RecipientType;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -18,6 +18,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
@@ -27,47 +28,47 @@ import org.springframework.stereotype.Component;
 public class BatchMail {
 
   private final JavaMailSender mailSender;
-  private final BatchConfig batchConfig;
+  private final MailConfig mailConfig;
+
+  public void sendTestMail() {
+    String filePath = "mail/테스트.html";
+    ClassPathResource htmlResource = new ClassPathResource(filePath);
+    if (!htmlResource.exists()) {
+      log.error("Invalid filePath : {}", filePath);
+      throw new IllegalArgumentException();
+    }
+    log.debug("{} exists : {}", filePath, htmlResource.exists());
+
+    try {
+      MimeMessage message = mailSender.createMimeMessage();
+      // 본문
+      Document doc = Jsoup.parse(htmlResource.getInputStream(), "UTF-8", "");
+      doc.getElementById("test").text("테스트 메일");
+      message.setText(doc.toString(), "UTF-8", "html");
+      // 제목
+      String subject = "[ERP Automation] TEST";
+      message.setSubject(subject, "UTF-8");
+
+      this.sendMimeMail(message);
+    } catch (Exception e) {
+      log.error(e.getMessage(), e);
+    }
+  }
 
   public void sendJobFailureMail(JobExecution jobExecution) {
-    if (!batchConfig.getRunSendMail()) {
-      return;
-    }
     log.info("자동화 실패 메일 발송 시작");
+    String htmlPath = "mail/배치 실패.html";
+    ClassPathResource htmlResource = new ClassPathResource(htmlPath);
 
-    // 템플릿
-    String html =
-        "<table style=\"font-size: 12pt;\">\n"
-            + "  <tbody>\n"
-            + "  <tr>\n"
-            + "    <td style=\"padding-left:20px\">\n"
-            + "      <div style=\"border:0 solid #FFFFFF;width:660px;padding:10px 0 10px 15px;\n"
-            + "      background-color:#4F5258;font-family:Trebuchet MS,serif;color:#FFFFFF;\">\n"
-            + "        <span style=\"font-size:14px;font-weight:bold;\">Automation Failure</span>\n"
-            + "      </div>\n"
-            + "    </td>\n"
-            + "  </tr>\n"
-            + "  <tr>\n"
-            + "    <td style=\"padding: 30px 0 0 30px;\">\n"
-            + "      <div style=\"font-family:Trebuchet MS, arial, 맑은 고딕,serif;font-size:12px;color:#666666;\">\n"
-            + "        <p>배치 번호 : <span id=\"no\"></span></p>\n"
-            + "        <p>배치 종류 : <span id=\"jobName\"></span></p>\n"
-            + "        <p>시작 시간 : <span id=\"startTime\"></span></p>\n"
-            + "        <p>종료 시간 : <span id=\"endTime\"></span></p>\n"
-            + "        <p>조회 기간 : <span id=\"period\"></span></p>\n"
-            + "        <p>실패 스텝 : <span id=\"failedStep\"></span></p>\n"
-            + "        <br/>\n"
-            + "        <p><a href=\"http://192.168.11.158:8080/\" target=\"_blank\">관리 페이지 바로가기</a></p>\n"
-            + "      </div>\n"
-            + "    </td>\n"
-            + "  </tr>\n"
-            + "  </tbody>\n"
-            + "</table>";
-
-    MimeMessage message = mailSender.createMimeMessage();
+    if (!htmlResource.exists()) {
+      log.error("Invalid filePath : {}", htmlPath);
+      throw new IllegalArgumentException();
+    }
+    log.debug("{} exists : {}", htmlPath, htmlResource.exists());
     try {
+      MimeMessage message = mailSender.createMimeMessage();
       // 본문
-      Document doc = Jsoup.parse(html, "UTF-8");
+      Document doc = Jsoup.parse(htmlResource.getInputStream(), "UTF-8", "");
       String jobName = jobExecution.getJobInstance().getJobName();
       SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
       // 배치 번호
@@ -102,56 +103,31 @@ public class BatchMail {
       // 제목
       String subject = "[ERP Automation] " + jobName + " 실패 알림";
       message.setSubject(subject, "UTF-8");
-      // 보내는 사람
-      message.setFrom("damu@inveniacorp.com");
-      // 받는 사람
-      message.addRecipient(RecipientType.TO, new InternetAddress("ssu@didigo.com"));
-      // 참조
-      message.addRecipient(RecipientType.CC, new InternetAddress("damu@inveniacorp.com"));
 
-      mailSender.send(message);
+      this.sendMimeMail(message);
       log.info("자동화 실패 메일 발송 완료");
-    } catch (MessagingException e) {
+    } catch (MessagingException | IOException e) {
       log.error(e.getLocalizedMessage(), e);
     }
   }
 
   public void sendUnregisteredCustomerMail(String filePath, int size) {
-    if (!batchConfig.getRunSendMail()) {
-      return;
-    }
     log.info("미등록 거래처 메일 발송 시작");
 
-    // 템플릿
-    String html =
-        "<table style=\"font-size: 12pt;\">\n"
-            + "  <tbody>\n"
-            + "  <tr>\n"
-            + "    <td style=\"padding-left:20px\">\n"
-            + "      <div style=\"border:0 solid #FFFFFF;width:660px;padding:10px 0 10px 15px;\n"
-            + "      background-color:#4F5258;font-family:Trebuchet MS,serif;color:#FFFFFF;\">\n"
-            + "        <span style=\"font-size:14px;font-weight:bold;\">Unregistered Customer</span>\n"
-            + "      </div>\n"
-            + "    </td>\n"
-            + "  </tr>\n"
-            + "  <tr>\n"
-            + "    <td style=\"padding: 30px 0 0 30px;\">\n"
-            + "      <div style=\"font-family:Trebuchet MS, arial, 맑은 고딕,serif;font-size:12px;color:#666666;\">\n"
-            + "        <br/>\n"
-            + "        <p>미등록 거래처 : <span id=\"count\"></span>건</p>\n"
-            + "        <br/>\n"
-            + "        <p><a href=\"http://192.168.11.158:8080/\" target=\"_blank\">관리 페이지 바로가기</a></p>\n"
-            + "      </div>\n"
-            + "    </td>\n"
-            + "  </tr>\n"
-            + "  </tbody>\n"
-            + "</table>";
+    String htmlPath = "mail/배치 실패.html";
+    ClassPathResource htmlResource = new ClassPathResource(htmlPath);
 
-    MimeMessage message = mailSender.createMimeMessage();
+    if (!htmlResource.exists()) {
+      log.error("Invalid filePath : {}", htmlPath);
+      throw new IllegalArgumentException();
+    }
+    log.debug("{} exists : {}", htmlPath, htmlResource.exists());
+
     try {
       // 본문
+      MimeMessage message = mailSender.createMimeMessage();
       MimeBodyPart htmlPart = new MimeBodyPart();
-      Document doc = Jsoup.parse(html, "UTF-8");
+      Document doc = Jsoup.parse(htmlResource.getInputStream(), "UTF-8", "");
       doc.getElementById("count").text(String.valueOf(size)); // 미등록 거래처 Count
       htmlPart.setText(doc.toString(), "UTF-8", "html");
 
@@ -169,17 +145,23 @@ public class BatchMail {
       // 제목
       String subject = "[ERP Automation] 미등록 거래처 알림";
       message.setSubject(subject, "UTF-8");
-      // 보내는 사람
-      message.setFrom("damu@inveniacorp.com");
-      // 받는 사람
-      message.addRecipient(RecipientType.TO, new InternetAddress("ssu@didigo.com"));
-      // 참조
-      message.addRecipient(RecipientType.CC, new InternetAddress("damu@inveniacorp.com"));
 
-      mailSender.send(message);
+      this.sendMimeMail(message);
       log.info("미등록 거래처 메일 발송 완료");
-    } catch (MessagingException e) {
+    } catch (MessagingException | IOException e) {
       log.error(e.getLocalizedMessage(), e);
     }
   }
+
+  private void sendMimeMail(MimeMessage message) throws MessagingException {
+    // 보내는 사람
+    message.setFrom("itsecurity@inveniacorp.com");
+    // 받는 사람
+    message.addRecipients(RecipientType.TO, mailConfig.getDefaultRecipients());
+    // 참조
+    message.addRecipients(RecipientType.CC, mailConfig.getDefaultCarbonCopies());
+    log.debug("메일 발송 대상 : {}", mailConfig);
+    mailSender.send(message);
+  }
 }
+

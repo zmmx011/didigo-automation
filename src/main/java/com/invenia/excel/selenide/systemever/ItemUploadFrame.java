@@ -5,7 +5,7 @@ import static com.codeborne.selenide.Selenide.$;
 import com.codeborne.selenide.SelenideElement;
 import org.openqa.selenium.By;
 
-public class ItemCodeUploadFrame {
+public class ItemUploadFrame {
 
   public SelenideElement frame = $(By.id("500259_iframe"));
   public SelenideElement canvas = $(By.id("SS1_cvp_vp"));
