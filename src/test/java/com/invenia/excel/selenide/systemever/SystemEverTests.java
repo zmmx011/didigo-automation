@@ -1,18 +1,15 @@
 package com.invenia.excel.selenide.systemever;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.files.FileFilters;
 import java.awt.AWTException;
 import java.awt.Robot;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -29,7 +26,8 @@ import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.openqa.selenium.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.ActiveProfiles;
@@ -39,6 +37,8 @@ import org.springframework.test.context.ActiveProfiles;
 @TestMethodOrder(OrderAnnotation.class)
 public class SystemEverTests {
 
+  private static final Logger log = LoggerFactory.getLogger(SystemEverTests.class);
+
   MainPage main = new MainPage();
   LeftMenu menu = new LeftMenu();
 
@@ -47,7 +47,7 @@ public class SystemEverTests {
     System.setProperty("java.awt.headless", "false");
     Configuration.fastSetValue = true;
     Configuration.timeout = 10000;
-    //Configuration.headless = true;
+    Configuration.headless = true;
     Configuration.proxyEnabled = true;
     Configuration.fileDownload = FileDownloadMode.PROXY;
     login();
@@ -59,8 +59,12 @@ public class SystemEverTests {
   }
 
   @AfterEach
-  public void defaultContent() {
-    Selenide.switchTo().defaultContent();
+  public void closeTab() throws InterruptedException {
+    main.tabCloseButton.click();
+    Thread.sleep(1000);
+    if (main.msgBtnOk.isDisplayed()) {
+      main.msgBtnOk.click();
+    }
   }
 
   public static void login() {
@@ -70,7 +74,6 @@ public class SystemEverTests {
     page.loginId.val("d_itsecurity@inveniacorp.com");
     page.loginPwd.val("inveni@2021");
     page.loginBtn.click();
-    //Selenide.executeJavaScript("document.querySelectorAll('.devLoadingArea').forEach(el => el.style.zIndex = '-100');");
   }
 
   @Test
@@ -87,11 +90,14 @@ public class SystemEverTests {
     // 품목 다운로드
     ItemInquiryFrame frame = new ItemInquiryFrame();
     Selenide.switchTo().frame(frame.frame);
-    waitUntilCanvasLoad(frame.canvas, frame.inquiryBtn);
+    BufferedImage image = frame.canvas.screenshotAsImage();
+    frame.inquiryBtn.click();
+    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
     frame.sheetSettingBtn.contextClick();
     File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
-    Selenide.switchTo().defaultContent();
     assertTrue(downloadFile.exists());
+    log.info("품목 다운로드 완료 : " + downloadFile.getAbsolutePath());
+    Selenide.switchTo().defaultContent();
   }
 
   @Test
@@ -112,8 +118,9 @@ public class SystemEverTests {
     frame.sheetSettingBtn.contextClick();
     File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
     frame.newBtn.click();
-    Selenide.switchTo().defaultContent();
     assertTrue(downloadFile.exists());
+    log.info("구매 단가 다운로드 완료 : " + downloadFile.getAbsolutePath());
+    Selenide.switchTo().defaultContent();
   }
 
   @Test
@@ -135,6 +142,7 @@ public class SystemEverTests {
     frame.sheetSettingBtn.contextClick();
     File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
     assertTrue(downloadFile.exists());
+    log.info("거래처 다운로드 완료 : " + downloadFile.getAbsolutePath());
     Selenide.switchTo().defaultContent();
   }
 
@@ -162,8 +170,9 @@ public class SystemEverTests {
     frame.inquiryBtn.click();
     frame.sheetSettingBtn.contextClick();
     File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
-    Selenide.switchTo().defaultContent();
     assertTrue(downloadFile.exists());
+    log.info("수주 다운로드 완료 : " + downloadFile.getAbsolutePath());
+    Selenide.switchTo().defaultContent();
   }
 
   @Test
@@ -182,12 +191,14 @@ public class SystemEverTests {
     frame.getFileBtn.click();
     enterEscapeKey();
     frame.file.uploadFile(new ClassPathResource("selenide/sample/RptWDAItemUpload.xlsx").getFile());
-    waitUntilCanvasLoad(frame.canvas, frame.getDataBtn);
+    BufferedImage image = frame.canvas.screenshotAsImage();
+    frame.getDataBtn.click();
+    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
     frame.saveBtn.click();
     Selenide.switchTo().defaultContent();
     // 품목 자산 분류 미입력으로 실패 되어야 한다.
-    assertTrue(frame.msgBtnOk.shouldBe(Condition.visible).isDisplayed());
-    frame.msgBtnOk.click();
+    assertTrue(main.msgBtnOk.shouldBe(Condition.visible).isDisplayed());
+    main.msgBtnOk.click();
   }
 
   @Test
@@ -207,7 +218,9 @@ public class SystemEverTests {
     frame.getFileBtn.click();
     enterEscapeKey();
     frame.file.uploadFile(new ClassPathResource("selenide/sample/RptWDACustUpload.xlsx").getFile());
-    waitUntilCanvasLoad(frame.canvas, frame.getDataBtn);
+    BufferedImage image = frame.canvas.screenshotAsImage();
+    frame.getDataBtn.click();
+    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
     frame.saveBtn.click();
     Selenide.switchTo().defaultContent();
     // 거래처 종류 미입력으로 실패 되어야 한다.
@@ -218,7 +231,7 @@ public class SystemEverTests {
   @Test
   @DisplayName("구매 단가 등록")
   @Order(7)
-  public void itemPriceUploadTest() throws InterruptedException, AWTException {
+  public void itemPriceUploadTest() {
     // 구매 관리 - 구매 기준 정보 - 구매 단가 - 구매 단가 등록
     menu.purchaseModule.click();
     menu.purchaseMasterDataMenu.click();
@@ -230,39 +243,18 @@ public class SystemEverTests {
     PurchaseUnitPriceFrame frame = new PurchaseUnitPriceFrame();
     Selenide.switchTo().frame(frame.frame);
 
-    StringSelection data =
-        new StringSelection(
-            "[르크루제] 원형 무쇠 냄비 22cm [색상 : 카시스]\tL000566248\t(주)까사벨라\t225,000.00\t내수\t2021-07-30\n");
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    clipboard.setContents(data, data);
+    String sampleData = "\tL000566248\t(주)까사벨라\t225,000.00\t내수\t2021-07-30\r\n"
+        + "\tL000682408\t(주)넷케이티아이\t16,000.00\t내수\t2021-07-30\r\n";
 
-    frame.canvas.click();
-    frame.canvas.sendKeys(Keys.chord(Keys.CONTROL, "v"));
-    //Selenide.actions().sendKeys(frame.canvas, Keys.chord(Keys.SHIFT, Keys.INSERT));
+    String jsCode = "let evt = new ClipboardEvent('paste', {clipboardData: new DataTransfer()});\n"
+        + "evt.clipboardData.setData('Text', arguments[0]);\n"
+        + "return document.getElementById(\"SS\").dispatchEvent(evt);";
 
-/*    Robot robot = new Robot();
-    Thread.sleep(2000);
-    robot.keyPress(KeyEvent.VK_CONTROL);
-    robot.keyPress(KeyEvent.VK_LEFT);
-    robot.keyRelease(KeyEvent.VK_LEFT);
-    robot.keyPress(KeyEvent.VK_UP);
-    robot.keyRelease(KeyEvent.VK_UP);
-    robot.keyRelease(KeyEvent.VK_CONTROL);
-    robot.keyPress(KeyEvent.VK_RIGHT);
-    robot.keyRelease(KeyEvent.VK_RIGHT);
-    robot.keyPress(KeyEvent.VK_CONTROL);
-    robot.keyPress(KeyEvent.VK_V);
-    robot.keyRelease(KeyEvent.VK_V);
-    robot.keyRelease(KeyEvent.VK_CONTROL);
-    Thread.sleep(2000);*/
-    Thread.sleep(5000);
+    BufferedImage image = frame.canvas.screenshotAsImage();
+    Boolean dispatchEvent = Selenide.executeJavaScript(jsCode, sampleData);
+    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
+    assertEquals(Boolean.TRUE, dispatchEvent);
     Selenide.switchTo().defaultContent();
-  }
-
-  private void waitUntilCanvasLoad(SelenideElement canvas, SelenideElement actionButton) {
-    BufferedImage image = canvas.screenshotAsImage();
-    actionButton.click();
-    canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
   }
 
   private void enterEscapeKey() {

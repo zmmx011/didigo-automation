@@ -13,5 +13,4 @@ public class ItemUploadFrame {
   public SelenideElement getFileBtn = $(By.id("btnGetFile_btn"));
   public SelenideElement getDataBtn = $(By.id("btnGetData_btn"));
   public SelenideElement saveBtn = $(By.cssSelector("li[colindex='1']"));
-  public SelenideElement msgBtnOk = $(By.id("msgBtnOk"));
 }

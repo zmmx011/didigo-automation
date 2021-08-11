@@ -8,4 +8,6 @@ import org.openqa.selenium.By;
 public class MainPage {
 
   public SelenideElement loadingPage = $(By.id("divOpenPageLoading"));
+  public SelenideElement tabCloseButton = $(By.id("btnCloseOpenPage"));
+  public SelenideElement msgBtnOk = $(By.id("msgBtnOk"));
 }

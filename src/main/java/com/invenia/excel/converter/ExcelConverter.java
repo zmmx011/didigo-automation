@@ -115,7 +115,7 @@ public class ExcelConverter {
                         + item.getPrice()
                         + "\t내수\t"
                         + LocalDate.now())
-            .collect(Collectors.joining("\n"));
+            .collect(Collectors.joining("\r\n"));
 
     // 클립보드로 전송
     clipboardData = new StringSelection(filteredPrice);
