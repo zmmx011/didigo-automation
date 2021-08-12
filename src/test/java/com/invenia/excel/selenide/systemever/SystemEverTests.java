@@ -8,9 +8,7 @@ import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.files.FileFilters;
-import java.awt.AWTException;
-import java.awt.Robot;
-import java.awt.event.KeyEvent;
+import com.invenia.excel.selenide.canvas.IsCanvasSame;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -47,7 +45,7 @@ public class SystemEverTests {
     System.setProperty("java.awt.headless", "false");
     Configuration.fastSetValue = true;
     Configuration.timeout = 10000;
-    Configuration.headless = true;
+    //Configuration.headless = true;
     Configuration.proxyEnabled = true;
     Configuration.fileDownload = FileDownloadMode.PROXY;
     login();
@@ -61,7 +59,7 @@ public class SystemEverTests {
   @AfterEach
   public void closeTab() throws InterruptedException {
     main.tabCloseButton.click();
-    Thread.sleep(1000);
+    Thread.sleep(2000);
     if (main.msgBtnOk.isDisplayed()) {
       main.msgBtnOk.click();
     }
@@ -76,7 +74,7 @@ public class SystemEverTests {
     page.loginBtn.click();
   }
 
-  @Test
+
   @DisplayName("품목 다운로드")
   @Order(1)
   public void itemCodeDownloadTest() throws FileNotFoundException {
@@ -100,7 +98,7 @@ public class SystemEverTests {
     Selenide.switchTo().defaultContent();
   }
 
-  @Test
+
   @DisplayName("구매 단가 다운로드")
   @Order(2)
   public void itemPriceDownloadTest() throws FileNotFoundException {
@@ -123,7 +121,7 @@ public class SystemEverTests {
     Selenide.switchTo().defaultContent();
   }
 
-  @Test
+
   @DisplayName("거래처 다운로드")
   @Order(3)
   public void customerDownloadTest() throws FileNotFoundException {
@@ -146,7 +144,7 @@ public class SystemEverTests {
     Selenide.switchTo().defaultContent();
   }
 
-  @Test
+
   @DisplayName("수주 다운로드")
   @Order(4)
   public void salesOrderDownloadTest() throws FileNotFoundException {
@@ -175,7 +173,7 @@ public class SystemEverTests {
     Selenide.switchTo().defaultContent();
   }
 
-  @Test
+
   @DisplayName("품목 업로드")
   @Order(5)
   public void itemCodeUploadTest() throws IOException {
@@ -189,7 +187,6 @@ public class SystemEverTests {
     ItemUploadFrame frame = new ItemUploadFrame();
     Selenide.switchTo().frame(frame.frame);
     frame.getFileBtn.click();
-    enterEscapeKey();
     frame.file.uploadFile(new ClassPathResource("selenide/sample/RptWDAItemUpload.xlsx").getFile());
     BufferedImage image = frame.canvas.screenshotAsImage();
     frame.getDataBtn.click();
@@ -216,7 +213,6 @@ public class SystemEverTests {
     CustomerUploadFrame frame = new CustomerUploadFrame();
     Selenide.switchTo().frame(frame.frame);
     frame.getFileBtn.click();
-    enterEscapeKey();
     frame.file.uploadFile(new ClassPathResource("selenide/sample/RptWDACustUpload.xlsx").getFile());
     BufferedImage image = frame.canvas.screenshotAsImage();
     frame.getDataBtn.click();
@@ -231,12 +227,13 @@ public class SystemEverTests {
   @Test
   @DisplayName("구매 단가 등록")
   @Order(7)
-  public void itemPriceUploadTest() {
+  public void itemPriceUploadTest() throws InterruptedException {
     // 구매 관리 - 구매 기준 정보 - 구매 단가 - 구매 단가 등록
     menu.purchaseModule.click();
     menu.purchaseMasterDataMenu.click();
     menu.purchaseUnitPriceGroup.click();
     menu.purchaseUnitPrice.click();
+    Thread.sleep(5000);
     main.loadingPage.shouldNot(Condition.visible);
 
     // 구매 단가 업로드
@@ -257,16 +254,29 @@ public class SystemEverTests {
     Selenide.switchTo().defaultContent();
   }
 
-  private void enterEscapeKey() {
-    try {
-      Robot robot = new Robot();
-      Thread.sleep(1000);
-      robot.keyPress(KeyEvent.VK_ESCAPE);
-      Thread.sleep(1000);
-      robot.keyRelease(KeyEvent.VK_ESCAPE);
-      Thread.sleep(1000);
-    } catch (AWTException | InterruptedException e) {
-      e.printStackTrace();
-    }
+  @Test
+  @DisplayName("수주 업로드")
+  @Order(8)
+  public void salesOrderUploadTest() throws IOException {
+    // 영업 관리 - 수주 관리 - 수주  - 수주 업로드
+    menu.salesModule.click();
+    menu.salesOrderMenu.click();
+    menu.salesOrderGroup.click();
+    menu.salesOrderUpload.click();
+    main.loadingPage.shouldNot(Condition.visible);
+
+    // 수주 업로드
+    SalesOrderUploadFrame frame = new SalesOrderUploadFrame();
+    Selenide.switchTo().frame(frame.frame);
+    frame.getFileBtn.click();
+    frame.file.uploadFile(new ClassPathResource("selenide/sample/RptWSLOrderUpload.xlsx").getFile());
+    BufferedImage image = frame.canvas.screenshotAsImage();
+    frame.getDataBtn.click();
+    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
+    frame.saveBtn.click();
+    Selenide.switchTo().defaultContent();
+    // 거래처 미입력으로 실패 되어야 한다.
+    assertTrue(main.msgBtnOk.shouldBe(Condition.visible).isDisplayed());
+    main.msgBtnOk.click();
   }
 }

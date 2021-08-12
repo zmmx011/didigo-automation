@@ -13,8 +13,7 @@ import org.springframework.core.io.ClassPathResource;
 @ConfigurationProperties("convert.config")
 public class ConvertConfig {
 
-  private String chromeDownloadPath;
-  private String ieDownloadPath;
+  private String downloadPath;
   private String backupPath;
   private String outputPath;
   private String customerFileName;
@@ -37,11 +36,11 @@ public class ConvertConfig {
   }
 
   public String getKdFilePath() {
-    return chromeDownloadPath + "구매발주품목조회_" + getErpDownloadFileDate() + ".xlsx";
+    return downloadPath + "구매발주품목조회_" + getErpDownloadFileDate() + ".xlsx";
   }
 
   public String getCozyFilePath() {
-    return chromeDownloadPath
+    return downloadPath
         + "Sales_by_period_"
         + LocalDate.of(2021, 7, 1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         + "_"
@@ -50,23 +49,23 @@ public class ConvertConfig {
   }
 
   public String getMallFilePath() {
-    return ieDownloadPath + "MemberOrderList.xls";
+    return downloadPath + "MemberOrderList.xls";
   }
 
   public String getItemCodeFilePath() {
-    return chromeDownloadPath + "품목조회_" + getErpDownloadFileDate() + ".xlsx";
+    return downloadPath + "품목조회_" + getErpDownloadFileDate() + ".xlsx";
   }
 
   public String getPriceFilePath() {
-    return chromeDownloadPath + "구매단가등록_" + getErpDownloadFileDate() + ".xlsx";
+    return downloadPath + "구매단가등록_" + getErpDownloadFileDate() + ".xlsx";
   }
 
   public String getCustomerFilePath() {
-    return chromeDownloadPath + "거래처조회_" + getErpDownloadFileDate() + ".xlsx";
+    return downloadPath + "거래처조회_" + getErpDownloadFileDate() + ".xlsx";
   }
 
   public String getContractOrderFilePath() {
-    return chromeDownloadPath + "수주조회_" + getErpDownloadFileDate() + ".xlsx";
+    return downloadPath + "수주조회_" + getErpDownloadFileDate() + ".xlsx";
   }
 
   // ERP 오전 9시 이전 다운로드시 이전 날짜로 파일 명 생성됨.

@@ -30,31 +30,6 @@ public class BatchMail {
   private final JavaMailSender mailSender;
   private final MailConfig mailConfig;
 
-  public void sendTestMail() {
-    String filePath = "mail/테스트.html";
-    ClassPathResource htmlResource = new ClassPathResource(filePath);
-    if (!htmlResource.exists()) {
-      log.error("Invalid filePath : {}", filePath);
-      throw new IllegalArgumentException();
-    }
-    log.debug("{} exists : {}", filePath, htmlResource.exists());
-
-    try {
-      MimeMessage message = mailSender.createMimeMessage();
-      // 본문
-      Document doc = Jsoup.parse(htmlResource.getInputStream(), "UTF-8", "");
-      doc.getElementById("test").text("테스트 메일");
-      message.setText(doc.toString(), "UTF-8", "html");
-      // 제목
-      String subject = "[ERP Automation] TEST";
-      message.setSubject(subject, "UTF-8");
-
-      this.sendMimeMail(message);
-    } catch (Exception e) {
-      log.error(e.getMessage(), e);
-    }
-  }
-
   public void sendJobFailureMail(JobExecution jobExecution) {
     log.info("자동화 실패 메일 발송 시작");
     String htmlPath = "mail/배치 실패.html";

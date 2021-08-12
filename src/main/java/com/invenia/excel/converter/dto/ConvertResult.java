@@ -4,8 +4,10 @@ import lombok.Data;
 
 @Data
 public class ConvertResult {
+
   private int customerSize;
   private int itemCodeSize;
   private long itemPriceSize;
+  private String itemPriceData;
   private int contractOrderSize;
 }

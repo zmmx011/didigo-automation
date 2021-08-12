@@ -17,17 +17,14 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
@@ -96,15 +93,13 @@ public class ExcelConverter {
         items.stream()
             .distinct()
             .filter(
-                item ->
-                    !Objects.equals(
-                        item.getPrice(),
-                        prices.stream()
-                            .parallel()
-                            .filter(price -> price.getItemCode().equals(item.getItemNo()))
-                            .findAny()
-                            .orElseGet(Price::new)
-                            .getPrice()))
+                item -> !Objects.equals(item.getPrice(), prices.stream()
+                    .parallel()
+                    .filter(price -> price.getItemCode().equals(item.getItemNo()))
+                    .findAny()
+                    .orElseGet(Price::new)
+                    .getPrice())
+            )
             .map(
                 item ->
                     "\t"
@@ -117,14 +112,11 @@ public class ExcelConverter {
                         + LocalDate.now())
             .collect(Collectors.joining("\r\n"));
 
-    // 클립보드로 전송
-    clipboardData = new StringSelection(filteredPrice);
-    clipboard.setContents(clipboardData, null);
+    clipboard.setContents(new StringSelection(filteredPrice), null);
 
-    config
-        .getConvertResult()
-        .get(siteName)
+    config.getConvertResult().get(siteName)
         .setItemPriceSize(filteredPrice.chars().parallel().filter(c -> c == '\n').count());
+    config.getConvertResult().get(siteName).setItemPriceData(filteredPrice);
   }
 
   public void contractOrderConvert(String siteName) throws Exception {
@@ -289,97 +281,5 @@ public class ExcelConverter {
               items.add(item);
             });
     return items;
-  }
-
-  public void fileBackup(Long id) throws IOException {
-    log.info("파일 백업 시작");
-    try {
-      Path backupPath = Paths.get(config.getBackupPath(String.valueOf(id)));
-      Path chromeDownloadPath = Paths.get(config.getChromeDownloadPath());
-      Path ieDownloadPath = Paths.get(config.getIeDownloadPath());
-      Path outputPath = Paths.get(config.getOutputPath());
-      // make backup folder
-      if (!Files.exists(backupPath)) {
-        Files.createDirectories(backupPath);
-      }
-      // Chrome Source Backup
-      if (Files.exists(chromeDownloadPath)) {
-        fileMove(chromeDownloadPath, backupPath);
-      }
-      // IE Source Backup
-      if (Files.exists(ieDownloadPath)) {
-        fileMove(ieDownloadPath, backupPath);
-      }
-      // Output Backup
-      if (Files.exists(outputPath)) {
-        fileCopy(outputPath, backupPath);
-      }
-    } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
-      throw e;
-    }
-    log.info("파일 백업 완료");
-  }
-
-  private void fileMove(Path source, Path target) throws IOException {
-    if (!Files.exists(source)) {
-      Files.createDirectories(source);
-    }
-    Files.walk(source, 1)
-        .filter(Files::isRegularFile)
-        .filter(
-            path -> path.getFileSystem().getPathMatcher("glob:**.{xls,xlsx,html}").matches(path))
-        .forEach(
-            x -> {
-              try {
-                Files.move(x, target.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-              } catch (IOException e) {
-                log.error(e.getLocalizedMessage(), e);
-              }
-            });
-  }
-
-  private void fileCopy(Path source, Path target) throws IOException {
-    if (Files.isDirectory(source)) {
-      if (Files.notExists(target)) {
-        Files.createDirectories(target);
-      }
-      try (Stream<Path> paths = Files.list(source)) {
-        paths.forEach(
-            p -> {
-              try {
-                fileCopy(p, target.resolve(source.relativize(p)));
-              } catch (IOException e) {
-                log.error(e.getLocalizedMessage(), e);
-              }
-            });
-      }
-    } else {
-      // if file exists, replace it
-      Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING);
-      log.debug(String.format("Copy File from \t'%s' to \t'%s'", source, target));
-    }
-  }
-
-  public void clearOutputPath() throws IOException {
-    Path outputPath = Paths.get(config.getOutputPath());
-    if (Files.exists(outputPath)) {
-      log.info(outputPath + " 삭제 실행");
-      try (Stream<Path> walk = Files.walk(outputPath)) {
-        walk.sorted(Comparator.reverseOrder())
-            .forEach(
-                x -> {
-                  try {
-                    Files.delete(x);
-                  } catch (IOException e) {
-                    log.error(e.getLocalizedMessage(), e);
-                  }
-                });
-      } catch (IOException e) {
-        log.error(e.getLocalizedMessage(), e);
-        throw e;
-      }
-      log.info(outputPath + " 삭제 완료");
-    }
   }
 }

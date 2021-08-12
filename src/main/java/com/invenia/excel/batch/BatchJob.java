@@ -2,9 +2,11 @@ package com.invenia.excel.batch;
 
 import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.common.AnsiColorEscapeSequence;
-import com.invenia.excel.converter.ExcelConverter;
-import com.invenia.excel.selenium.Automation;
+import com.invenia.excel.common.ExcelFileUtils;
+import com.invenia.excel.converter.ConvertConfig;
+import com.invenia.excel.selenide.Automation;
 import java.io.IOException;
+import java.nio.file.Paths;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
@@ -21,8 +23,9 @@ import org.springframework.context.annotation.Configuration;
 @AllArgsConstructor
 public class BatchJob {
 
+  private final ExcelFileUtils excelFileUtils;
   private final JobBuilderFactory jobBuilderFactory;
-  private final ExcelConverter excelConverter;
+  private final ConvertConfig config;
   private final Automation automation;
   private final BatchConfig batchConfig;
   private final BatchStep step;
@@ -147,11 +150,7 @@ public class BatchJob {
               + batchConfig.getRunKd()
               + " runMall : "
               + batchConfig.getRunMall());
-      try {
-        automation.setup();
-      } catch (IOException e) {
-        log.error(e.getLocalizedMessage(), e);
-      }
+      automation.setup();
       log.info(jobExecution.getJobInstance().getJobName() + " started");
     }
 
@@ -165,8 +164,13 @@ public class BatchJob {
         mail.sendJobFailureMail(jobExecution);
       }
       try {
-        excelConverter.fileBackup(jobExecution.getId());
-        excelConverter.clearOutputPath();
+        excelFileUtils.fileBackup(
+            Paths.get(config.getBackupPath(String.valueOf(jobExecution.getId()))),
+            Paths.get(config.getDownloadPath()),
+            Paths.get(config.getOutputPath())
+        );
+        excelFileUtils.clearPath(Paths.get(config.getOutputPath()));
+        excelFileUtils.clearPath(Paths.get(com.codeborne.selenide.Configuration.downloadsFolder));
       } catch (IOException e) {
         log.error(e.getLocalizedMessage(), e);
       } finally {

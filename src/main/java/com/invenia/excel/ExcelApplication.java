@@ -1,6 +1,5 @@
 package com.invenia.excel;
 
-import com.invenia.excel.batch.BatchMail;
 import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.batch.config.MailConfig;
 import com.invenia.excel.converter.ConvertConfig;
@@ -16,14 +15,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 public class ExcelApplication {
 
-  private static BatchMail batchMail;
-
-  public ExcelApplication(BatchMail batchMail) {
-    ExcelApplication.batchMail = batchMail;
-  }
-
   public static void main(String[] args) {
     new SpringApplicationBuilder(ExcelApplication.class).headless(false).run(args);
-    batchMail.sendTestMail();
   }
 }

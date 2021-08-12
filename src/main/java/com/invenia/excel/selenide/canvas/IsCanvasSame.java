@@ -1,4 +1,4 @@
-package com.invenia.excel.selenide.systemever;
+package com.invenia.excel.selenide.canvas;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Driver;
@@ -16,7 +16,7 @@ public class IsCanvasSame extends Condition {
   private final BufferedImage image;
 
   public IsCanvasSame(BufferedImage image) {
-    super("is image same");
+    super("is image same image");
     this.image = image;
   }
 
@@ -27,7 +27,16 @@ public class IsCanvasSame extends Condition {
   }
 
   private boolean compareImages(BufferedImage firstImage, BufferedImage secondImage) {
+/*    try {
+      ImageIO.write(firstImage, "png", new File("C:\\excel\\1.png"));
+      ImageIO.write(secondImage, "png", new File("C:\\excel\\2.png"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }*/
+
     if (firstImage.getWidth() != secondImage.getWidth() || firstImage.getHeight() != secondImage.getHeight()) {
+      log.debug("First Image Width: {} Height: {}", firstImage.getWidth(), firstImage.getHeight());
+      log.debug("Second Image Width: {} Height: {}", secondImage.getWidth(), secondImage.getHeight());
       return false;
     }
 

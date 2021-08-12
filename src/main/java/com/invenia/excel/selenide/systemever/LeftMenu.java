@@ -29,4 +29,5 @@ public class LeftMenu {
   public SelenideElement salesOrderMenu = $(By.id("5"));
   public SelenideElement salesOrderGroup = $(By.id("29"));
   public SelenideElement salesOrderInquiry = $(By.id("500586"));
+  public SelenideElement salesOrderUpload = $(By.id("500583"));
 }

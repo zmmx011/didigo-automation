@@ -3,8 +3,8 @@
   <worksheet name="Sheet1" idx="0">
     <loop startRow="2" endRow="2" items="items" var="item" varType="com.invenia.excel.converter.dto.Price">
       <section startRow="2" endRow="2">
-        <mapping row="2" col="2">item.itemCode</mapping>
-        <mapping row="2" col="4">item.price</mapping>
+        <mapping row="2" col="1">item.itemCode</mapping>
+        <mapping row="2" col="3">item.price</mapping>
       </section>
       <loopbreakcondition>
         <rowcheck offset="0"/>

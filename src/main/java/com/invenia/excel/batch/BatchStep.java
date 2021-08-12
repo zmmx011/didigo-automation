@@ -3,7 +3,7 @@ package com.invenia.excel.batch;
 import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.batch.config.ThrowsBiConsumer;
 import com.invenia.excel.converter.ExcelConverter;
-import com.invenia.excel.selenium.Automation;
+import com.invenia.excel.selenide.Automation;
 import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -122,14 +122,8 @@ public class BatchStep {
               LocalDate toDate = LocalDate.parse(toDateStr);
               try {
                 if (batchConfig.getRunKd()) {
-                  automation.newTab();
-                  automation.runKdErpDownload(fromDate, toDate, batchConfig.getKdWebUrl());
-                  automation.changeTab(0);
                 }
                 if (batchConfig.getRunCozy()) {
-                  automation.newTab();
-                  automation.runCozyDownload(fromDate, toDate, batchConfig.getCozyWebUrl());
-                  automation.changeTab(0);
                 }
                 if (batchConfig.getRunMall()) {
                   automation.runMallDownload(fromDate, toDate, batchConfig.getMallWebUrl());
