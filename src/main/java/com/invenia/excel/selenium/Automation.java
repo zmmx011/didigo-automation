@@ -28,6 +28,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 
 @Slf4j
 @RequiredArgsConstructor
+@Deprecated
 public class Automation {
 
   private final ConvertConfig config;

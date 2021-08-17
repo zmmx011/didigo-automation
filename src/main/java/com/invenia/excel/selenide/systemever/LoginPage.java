@@ -10,4 +10,6 @@ public class LoginPage {
   public SelenideElement loginId = $(By.id("txtLoginId"));
   public SelenideElement loginPwd = $(By.id("inputLoginPwd"));
   public SelenideElement loginBtn = $(By.id("btnLogin"));
+  public SelenideElement loginBg = $(By.className("loginBg"));
 }
+
