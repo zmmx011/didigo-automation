@@ -4,16 +4,10 @@ import com.invenia.excel.batch.BatchJob;
 import com.invenia.excel.batch.config.BatchConfig;
 import com.invenia.excel.converter.ConvertConfig;
 import com.invenia.excel.web.dto.ManualRunSettings;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,103 +36,46 @@ public class BatchRunController {
 
   // 품목 단가
   @PostMapping(value = "/run/item")
-  public ResponseEntity<String> runItem(@RequestBody ManualRunSettings runSettings)
-      throws Exception {
-    jobLauncher.run(
-        batchJob.itemCodeJob(),
+  public ResponseEntity<String> runItem(@RequestBody ManualRunSettings runSettings) throws Exception {
+    jobLauncher.run(batchJob.itemCodeJob(),
         BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   // 거래처
   @PostMapping(value = "/run/customer")
-  public ResponseEntity<String> runCustomer(@RequestBody ManualRunSettings runSettings)
-      throws Exception {
-    jobLauncher.run(
-        batchJob.customerJob(),
+  public ResponseEntity<String> runCustomer(@RequestBody ManualRunSettings runSettings) throws Exception {
+    jobLauncher.run(batchJob.customerJob(),
         BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
   // 수주
   @PostMapping(value = "/run/contract")
-  public ResponseEntity<String> runContract(@RequestBody ManualRunSettings runSettings)
-      throws Exception {
-    jobLauncher.run(
-        batchJob.contractOrderJob(),
+  public ResponseEntity<String> runContract(@RequestBody ManualRunSettings runSettings) throws Exception {
+    jobLauncher.run(batchJob.contractOrderJob(),
         BatchConfig.getJobParameters(runSettings.getFromDate(), runSettings.getToDate()));
     return ResponseEntity.ok().build();
   }
 
-  /* 발주 데이터 생성 기능 삭제
-  @GetMapping(value = "/purchase-order/{jobExecutionId}")
-  public ResponseEntity<Resource> downloadPurchaseOrderFile(
-      @PathVariable String jobExecutionId, HttpServletResponse response) throws IOException {
-    Path backupPath = Paths.get(config.getBackupPath()).resolve(jobExecutionId);
-    Path zipFilePath = backupPath.resolve("purchaseorder.zip");
-    makeFilteredZipFile(backupPath, zipFilePath, "purchaseorder.xlsx");
-    ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(zipFilePath));
-    return ResponseEntity.ok()
-        .headers(
-            prepareHeaderForFileReturn(
-                zipFilePath.getFileName().toString(), "application/zip", response))
-        .contentLength(Files.size(zipFilePath))
-        .contentType(MediaType.APPLICATION_OCTET_STREAM)
-        .body(resource);
-  }*/
-
   // 미등록 거래처 다운로드
   @GetMapping(value = "/unregistered-customer/{jobExecutionId}")
-  public ResponseEntity<Resource> downloadUnregisteredCustomerFile(
-      @PathVariable String jobExecutionId, HttpServletResponse response) throws IOException {
-    Path backupPath =
-        Paths.get(config.getBackupPath()).resolve(jobExecutionId).resolve("customer.xlsx");
+  public ResponseEntity<Resource> downloadUnregisteredCustomerFile(@PathVariable String jobExecutionId,
+      HttpServletResponse response) throws IOException {
+    Path backupPath = Paths.get(config.getBackupPath()).resolve(jobExecutionId).resolve("customer.xlsx");
     ByteArrayResource resource = new ByteArrayResource(Files.readAllBytes(backupPath));
     return ResponseEntity.ok()
-        .headers(
-            prepareHeaderForFileReturn(
-                backupPath.getFileName().toString(),
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                response))
+        .headers(prepareHeaderForFileReturn(backupPath.getFileName().toString(),
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", response))
         .contentLength(Files.size(backupPath))
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .body(resource);
   }
 
-  private HttpHeaders prepareHeaderForFileReturn(
-      String fileName, String contentType, HttpServletResponse response) {
+  private HttpHeaders prepareHeaderForFileReturn(String fileName, String contentType, HttpServletResponse response) {
     HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.CONTENT_TYPE, contentType);
     response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
     return headers;
-  }
-
-  private void makeFilteredZipFile(Path source, Path zipFile, String filterFileName) {
-    try (ZipOutputStream outputStream =
-        new ZipOutputStream(new FileOutputStream(zipFile.toString()))) {
-      Files.walkFileTree(
-          source,
-          new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attributes) {
-              if (!file.getFileName().toString().equals(filterFileName)) {
-                return FileVisitResult.CONTINUE;
-              }
-
-              try {
-                Path targetFile = source.relativize(file);
-                outputStream.putNextEntry(new ZipEntry(targetFile.toString()));
-                byte[] bytes = Files.readAllBytes(file);
-                outputStream.write(bytes, 0, bytes.length);
-                outputStream.closeEntry();
-              } catch (IOException e) {
-                e.printStackTrace();
-              }
-              return FileVisitResult.CONTINUE;
-            }
-          });
-    } catch (IOException e) {
-      log.error(e.getLocalizedMessage(), e);
-    }
   }
 }

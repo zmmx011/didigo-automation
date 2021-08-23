@@ -4,9 +4,11 @@ import static com.codeborne.selenide.WebDriverRunner.getWebDriver;
 
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.Configuration;
+import com.codeborne.selenide.FileDownloadMode;
 import com.codeborne.selenide.Selenide;
+import com.codeborne.selenide.files.FileFilters;
+import com.invenia.excel.batch.BatchMail;
 import com.invenia.excel.converter.ConvertConfig;
-import com.invenia.excel.selenide.canvas.IsCanvasSame;
 import com.invenia.excel.selenide.mall.MallPage;
 import com.invenia.excel.selenide.systemever.CustomerInquiryFrame;
 import com.invenia.excel.selenide.systemever.CustomerUploadFrame;
@@ -15,17 +17,23 @@ import com.invenia.excel.selenide.systemever.ItemUploadFrame;
 import com.invenia.excel.selenide.systemever.LeftMenu;
 import com.invenia.excel.selenide.systemever.LoginPage;
 import com.invenia.excel.selenide.systemever.MainPage;
+import com.invenia.excel.selenide.systemever.PurchaseOrderItemInquiryFrame;
 import com.invenia.excel.selenide.systemever.PurchaseUnitPriceFrame;
 import com.invenia.excel.selenide.systemever.SalesOrderInquiryFrame;
 import com.invenia.excel.selenide.systemever.SalesOrderUploadFrame;
-import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.WebDriver;
@@ -37,16 +45,20 @@ import org.springframework.stereotype.Component;
 public class Automation {
 
   private final ConvertConfig config;
+  private final BatchMail mail;
 
   MainPage main = new MainPage();
   LeftMenu menu = new LeftMenu();
 
   public void setup() {
     System.setProperty("webdriver.chrome.driver", "C:/excel/driver/chrome_92.0.4515.43.exe");
-    Configuration.downloadsFolder = config.getDownloadPath();
     Configuration.fastSetValue = true;
     Configuration.timeout = 10000;
     Configuration.pageLoadTimeout = 300000;
+    Configuration.fileDownload = FileDownloadMode.FOLDER;
+    Configuration.downloadsFolder = config.getDownloadPath();
+    Configuration.reportsFolder = config.getDownloadPath();
+    Configuration.headless = true;
   }
 
   /**
@@ -55,21 +67,8 @@ public class Automation {
    * @param fromDate 조회 시작일
    * @param toDate   조회 종료일
    */
-  public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url) {
-    newTab();
-    Selenide.open(url);
-    // 로그인
-    MallPage mallPage = new MallPage();
-    mallPage.loginId.sendKeys("it01");
-    mallPage.loginPwd.sendKeys("qlalfqjsgh!@34");
-    mallPage.loginBtn.click();
-
-    Selenide.open("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
-
-    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
-    String from = fromDate.format(dateFormat);
-    String to = toDate.format(dateFormat);
-
+  public void runMallDownload(LocalDate fromDate, LocalDate toDate, String url)
+      throws IOException, InterruptedException {
     String jsCode = "  document.excelform.OPER_MALL_FG.value = \"ALL\";\n"
         + "  document.getElementById(\"contractStartDate_con\").value = arguments[0];\n"
         + "  document.getElementById(\"contractEndDate_con\").value = arguments[1];\n"
@@ -92,7 +91,69 @@ public class Automation {
         + "  document.getElementById(\"fileName\").value = \"MemberOrderList\";\n"
         + "  document.excelform.submit();";
 
+    newTab();
+    Selenide.open(url);
+    // 로그인
+    MallPage mallPage = new MallPage();
+    mallPage.loginId.sendKeys("it01");
+    mallPage.loginPwd.sendKeys("qlalfqjsgh!@34");
+    mallPage.loginBtn.click();
+
+    Selenide.open("https://admin.didigomall.com:444/simpleCommand.do?MNU_ID=086050&PGM_ID=ord003");
+
+    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
+    String from = fromDate.format(dateFormat);
+    String to = toDate.format(dateFormat);
+
     Selenide.executeJavaScript(jsCode, from, to);
+    Thread.sleep(5000);
+
+    Path downloadsPath = Paths.get(config.getDownloadPath());
+    Path xlsPath;
+    try (Stream<Path> walk = Files.walk(downloadsPath)) {
+      xlsPath = walk.filter(Files::isRegularFile)
+          .filter(path -> path.getFileSystem().getPathMatcher("glob:**.{xls}").matches(path))
+          .findFirst().orElseThrow(() -> new FileNotFoundException("MemberOrderList.xls not found"));
+    }
+
+    Files.move(xlsPath, downloadsPath.resolve(xlsPath.getFileName()), StandardCopyOption.ATOMIC_MOVE);
+    log.info("디디고 몰 다운로드 완료 ");
+    Selenide.switchTo().window(0);
+  }
+
+  /**
+   * KD 다운로드
+   *
+   * @param fromDate 조회 시작일
+   * @param toDate   조회 종료일
+   */
+  public void runKdDownload(LocalDate fromDate, LocalDate toDate, String url) throws IOException {
+    newTab();
+    runErpLogin(url, "m_itsecurity@inveniacorp.com", "Invenia_0041");
+
+    // 구매 관리 - 구매 활동 관리 - 구매 발주 - 구매 발주 품목 조회
+    menu.purchaseModule.click();
+    menu.purchaseActivityMngMenu.click();
+    menu.purchaseOrderGroup.click();
+    menu.purchaseOrderItemInquiry.click();
+    main.loadingPage.shouldNot(Condition.visible);
+
+    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd");
+    String from = fromDate.format(dateFormat);
+    String to = toDate.format(dateFormat);
+
+    // 수주 다운로드
+    PurchaseOrderItemInquiryFrame frame = new PurchaseOrderItemInquiryFrame();
+    Selenide.switchTo().frame(frame.frame);
+    frame.customer.val("디디고");
+    frame.purchaseOrderDateFrom.val(fromDate.format(dateFormat));
+    frame.purchaseOrderDateTo.val(toDate.format(dateFormat));
+    frame.inquiryBtn.click();
+    frame.sheetSettingBtn.contextClick();
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    String moveFilePath = moveDownloadFile(downloadFile);
+    log.info("KD 다운로드 완료 : {}", moveFilePath);
+
     Selenide.switchTo().window(0);
   }
 
@@ -102,19 +163,23 @@ public class Automation {
    * @param url ERP 웹사이트 주소
    */
   public void runErpLogin(String url) {
+    runErpLogin(url, "d_itsecurity@inveniacorp.com", "inveni@2021");
+  }
+
+  public void runErpLogin(String url, String id, String pw) {
     LoginPage page = new LoginPage();
     Selenide.open(url);
     page.loginBg.shouldBe(Condition.visible);
     Selenide.executeJavaScript("document.querySelectorAll('.popupLoginPage').forEach(el => el.remove());");
-    page.loginId.val("d_itsecurity@inveniacorp.com");
-    page.loginPwd.val("inveni@2021");
+    page.loginId.val(id);
+    page.loginPwd.val(pw);
     page.loginBtn.click();
   }
 
   /**
    * 품목 다운로드
    */
-  public void runItemCodeDownload() {
+  public void runItemCodeDownload() throws IOException {
     // 전사 관리 - 품목 관리 - 품목 등록 - 품목 조회
     menu.corporateModule.click();
     menu.itemMenu.click();
@@ -127,15 +192,16 @@ public class Automation {
     Selenide.switchTo().frame(frame.frame);
     frame.inquiryBtn.click();
     frame.sheetSettingBtn.contextClick();
-    frame.excelDownloadBtn.click();
-    log.info("품목 다운로드 완료 ");
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    String moveFilePath = moveDownloadFile(downloadFile);
+    log.info("품목 다운로드 완료 : {}", moveFilePath);
     Selenide.switchTo().defaultContent();
   }
 
   /**
    * 구매 단가 다운로드
    */
-  public void runItemPriceDownload() {
+  public void runItemPriceDownload() throws IOException {
     // 구매 관리 - 구매 기준 정보 - 구매 단가 - 구매 단가 등록
     menu.purchaseModule.click();
     menu.purchaseMasterDataMenu.click();
@@ -148,15 +214,16 @@ public class Automation {
     Selenide.switchTo().frame(frame.frame);
     frame.inquiryBtn.click();
     frame.sheetSettingBtn.contextClick();
-    frame.excelDownloadBtn.click();
-    log.info("구매 단가 다운로드 완료");
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    String moveFilePath = moveDownloadFile(downloadFile);
+    log.info("구매 단가 다운로드 완료 : {}", moveFilePath);
     Selenide.switchTo().defaultContent();
   }
 
   /**
    * 거래처 다운로드
    */
-  public void runCustomerDownload() {
+  public void runCustomerDownload() throws IOException {
     // 전사 관리 - 거래처 관리 - 거래처 등록 - 거래처 조회
     menu.corporateModule.click();
     menu.customerMenu.click();
@@ -170,9 +237,9 @@ public class Automation {
     frame.inquiryBtn.click();
     main.loadingPage.shouldNot(Condition.visible);
     frame.sheetSettingBtn.contextClick();
-    frame.excelDownloadBtn.click();
-
-    log.info("거래처 다운로드 완료");
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    String moveFilePath = moveDownloadFile(downloadFile);
+    log.info("거래처 다운로드 완료 : {}", moveFilePath);
     Selenide.switchTo().defaultContent();
   }
 
@@ -182,7 +249,7 @@ public class Automation {
    * @param fromDate 조회 시작일
    * @param toDate   조회 종료일
    */
-  public void runContractOrderDownload(LocalDate fromDate, LocalDate toDate) {
+  public void runContractOrderDownload(LocalDate fromDate, LocalDate toDate) throws IOException {
     DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // 영업 관리 - 수주 관리 - 수주  - 수주 조회
@@ -197,14 +264,12 @@ public class Automation {
     Selenide.switchTo().frame(frame.frame);
     frame.bizUnit.selectOption("디디고");
     frame.salesOrderType.selectOption("온라인영업");
-    frame.salesOrderDateFrom.val(fromDate.minusMonths(1).format(dateFormat));
-    frame.deliveryDateFrom.val(fromDate.format(dateFormat));
-    frame.deliveryDateTo.val(toDate.format(dateFormat));
+    frame.salesOrderDateFrom.val(fromDate.minusMonths(3).format(dateFormat));
     frame.inquiryBtn.click();
     frame.sheetSettingBtn.contextClick();
-    frame.excelDownloadBtn.click();
-
-    log.info("수주 다운로드 완료");
+    File downloadFile = frame.excelDownloadBtn.download(FileFilters.withExtension("xlsx"));
+    String moveFilePath = moveDownloadFile(downloadFile);
+    log.info("수주 다운로드 완료 : {}", moveFilePath);
     Selenide.switchTo().defaultContent();
   }
 
@@ -213,7 +278,7 @@ public class Automation {
    *
    * @param siteName 대상 사이트 명
    */
-  public void runItemCodeUpload(String siteName) {
+  public void runItemCodeUpload(String siteName) throws InterruptedException {
     int size = config.getConvertResult().get(siteName).getItemCodeSize();
     log.info("품목 신규 등록 {} 건", size);
     if (size <= 0) {
@@ -231,10 +296,10 @@ public class Automation {
     frame.getFileBtn.click();
     Path uploadFile = Paths.get(config.getOutputPath(siteName, config.getItemCodeFileName()));
     frame.file.uploadFile(uploadFile.toFile());
-    BufferedImage image = frame.canvas.screenshotAsImage();
     frame.getDataBtn.click();
-    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
+    Thread.sleep(5000);
     frame.saveBtn.click();
+    Thread.sleep(5000);
     Selenide.switchTo().defaultContent();
     main.msgBtnOk.click();
     log.info("{} 품목 엑셀 업로드 완료", siteName);
@@ -245,7 +310,7 @@ public class Automation {
    *
    * @param siteName 대상 사이트 명
    */
-  public void runItemPriceUpload(String siteName) {
+  public void runItemPriceUpload(String siteName) throws InterruptedException {
     long size = config.getConvertResult().get(siteName).getItemPriceSize();
     log.info("단가 신규 등록 {} 건", size);
     if (size <= 0) {
@@ -268,10 +333,10 @@ public class Automation {
 
     String data = config.getConvertResult().get(siteName).getItemPriceData();
 
-    BufferedImage image = frame.canvas.screenshotAsImage();
     Selenide.executeJavaScript(jsCode, data);
-    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
-    //frame.saveBtn.click();
+    Thread.sleep(5000);
+    frame.saveBtn.click();
+    Thread.sleep(5000);
     Selenide.switchTo().defaultContent();
     log.info("{} 단가 업로드 완료", siteName);
   }
@@ -281,7 +346,7 @@ public class Automation {
    *
    * @param siteName 대상 사이트 명
    */
-  public void runCustomerUpload(String siteName) {
+  public void runCustomerUpload(String siteName) throws InterruptedException {
     int size = config.getConvertResult().get(siteName).getCustomerSize();
     log.info("거래처 신규 등록 {} 건", size);
     if (size <= 0) {
@@ -300,12 +365,15 @@ public class Automation {
     frame.getFileBtn.click();
     Path uploadFile = Paths.get(config.getOutputPath(siteName, config.getCustomerFileName()));
     frame.file.uploadFile(uploadFile.toFile());
-    BufferedImage image = frame.canvas.screenshotAsImage();
     frame.getDataBtn.click();
-    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
+    Thread.sleep(5000);
     frame.saveBtn.click();
+    Thread.sleep(5000);
     Selenide.switchTo().defaultContent();
     log.info("{} 거래처 업로드 완료", siteName);
+
+    // 거래처 등록 알림
+    mail.sendUnregisteredCustomerMail(uploadFile.toString(), size);
   }
 
   /**
@@ -333,12 +401,12 @@ public class Automation {
     frame.getFileBtn.click();
     Path uploadFile = Paths.get(config.getOutputPath(siteName, config.getContractOrderFileName()));
     frame.file.uploadFile(uploadFile.toFile());
-    BufferedImage image = frame.canvas.screenshotAsImage();
     frame.getDataBtn.click();
-    frame.canvas.shouldNotBe(new IsCanvasSame(Objects.requireNonNull(image)));
+    Thread.sleep(5000);
     frame.saveBtn.click();
     Selenide.switchTo().defaultContent();
     log.info("{} 수주 업로드 완료", siteName);
+
     Thread.sleep(10000);
   }
 
@@ -355,7 +423,16 @@ public class Automation {
   }
 
   public void quitAutomation() {
+    DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    Selenide.screenshot(LocalDateTime.now().format(dateFormat));
     Selenide.closeWebDriver();
     log.info("Chrome Driver Quit");
+  }
+
+  public String moveDownloadFile(File downloadFile) throws IOException {
+    Path downloadFilePath = Paths.get(downloadFile.getAbsolutePath());
+    Path moveFilePath = Paths.get(config.getDownloadPath() + downloadFilePath.getFileName());
+    Files.move(downloadFilePath, moveFilePath, StandardCopyOption.REPLACE_EXISTING);
+    return moveFilePath.toAbsolutePath().toString();
   }
 }

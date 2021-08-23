@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ErrorResponse {
+
   private final LocalDateTime timestamp = LocalDateTime.now();
   private String message;
   private String code;

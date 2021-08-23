@@ -4,5 +4,6 @@ import lombok.Data;
 
 @Data
 public class ItemCode {
+
   private String itemCode;
 }

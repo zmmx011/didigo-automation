@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RequestMapping("/api")
 public class BatchSettingController {
+
   private final BatchScheduler scheduler;
   private final BatchEnvironmentRepository batchEnvironmentRepository;
 

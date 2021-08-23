@@ -1,6 +1,7 @@
 package com.invenia.excel.converter;
 
 import com.invenia.excel.common.AnsiColorEscapeSequence;
+import com.invenia.excel.converter.dto.ContractOrder;
 import com.invenia.excel.converter.dto.ConvertResult;
 import com.invenia.excel.converter.dto.Customer;
 import com.invenia.excel.converter.dto.Item;
@@ -60,22 +61,17 @@ public class ExcelConverter {
     List<ItemCode> itemCodes =
         readExcel(config.getTemplatePath("systemever/itemcode.xml"), config.getItemCodeFilePath());
     // 품목 중복 제거
-    List<Item> filteredItems =
-        items.stream()
-            .distinct()
-            .filter(
-                item ->
-                    itemCodes.stream()
-                        .parallel()
-                        .noneMatch(itemCode -> item.getItemNo().equals(itemCode.getItemCode())))
-            .collect(Collectors.toList());
+    List<Item> filteredItems = items.stream()
+        .distinct()
+        .filter(item -> itemCodes.stream().parallel()
+            .noneMatch(itemCode -> item.getItemNo().equals(itemCode.getItemCode())))
+        .collect(Collectors.toList());
     // 품목 엑셀 생성
     String itemCodeFileName = config.getItemCodeFileName();
-    int itemCodeSize =
-        makeExcel(
-            filteredItems,
-            Paths.get(config.getTemplatePath(siteName, itemCodeFileName)),
-            Paths.get(config.getOutputPath(siteName, itemCodeFileName)));
+    int itemCodeSize = makeExcel(filteredItems,
+        Paths.get(config.getTemplatePath(siteName, itemCodeFileName)),
+        Paths.get(config.getOutputPath(siteName, itemCodeFileName))
+    );
 
     config.getConvertResult().get(siteName).setItemCodeSize(itemCodeSize);
 
@@ -85,32 +81,27 @@ public class ExcelConverter {
     clipboard.setContents(clipboardData, null);
 
     // 단가 엑셀 읽기
-    List<Price> prices =
-        readExcel(config.getTemplatePath("systemever/price.xml"), config.getPriceFilePath());
+    List<Price> prices = readExcel(config.getTemplatePath("systemever/price.xml"), config.getPriceFilePath());
 
     // 단가 중복 제거
-    String filteredPrice =
-        items.stream()
-            .distinct()
-            .filter(
-                item -> !Objects.equals(item.getPrice(), prices.stream()
-                    .parallel()
-                    .filter(price -> price.getItemCode().equals(item.getItemNo()))
-                    .findAny()
-                    .orElseGet(Price::new)
-                    .getPrice())
-            )
-            .map(
-                item ->
-                    "\t"
-                        + item.getItemNo()
-                        + "\t"
-                        + item.getDvPlaceName()
-                        + "\t"
-                        + item.getPrice()
-                        + "\t내수\t"
-                        + LocalDate.now())
-            .collect(Collectors.joining("\r\n"));
+    String filteredPrice = items.stream()
+        .distinct()
+        .filter(item -> !Objects.equals(item.getPrice(),
+            prices.stream().parallel()
+                .filter(price -> price.getItemCode().equals(item.getItemNo()))
+                .findAny()
+                .orElseGet(Price::new)
+                .getPrice())
+        )
+        .map(item -> "\t"
+            + item.getItemNo()
+            + "\t"
+            + item.getDvPlaceName()
+            + "\t"
+            + item.getPrice()
+            + "\t내수\t"
+            + LocalDate.now())
+        .collect(Collectors.joining("\r\n"));
 
     clipboard.setContents(new StringSelection(filteredPrice), null);
 
@@ -121,27 +112,23 @@ public class ExcelConverter {
 
   public void contractOrderConvert(String siteName) throws Exception {
     // 수주 엑셀 읽기
-    List<Item> orders =
-        readExcel(
-            config.getTemplatePath("systemever/contractorder.xml"),
-            config.getContractOrderFilePath());
-    log.debug(AnsiColorEscapeSequence.RED.es() + "수주 조회 : " + orders.size());
+    List<ContractOrder> orders =
+        readExcel(config.getTemplatePath("systemever/contractorder.xml"), config.getContractOrderFilePath());
+    log.debug(AnsiColorEscapeSequence.RED.es() + "수주 데이터 Size : " + orders.size());
     // 수주 중복 제거
-    List<Item> distinctOrders =
-        Objects.requireNonNull(readItems(siteName)).stream()
-            .filter(
-                item ->
-                    orders.stream()
-                        .filter(order -> !order.getRemarkM().equals(""))
-                        .noneMatch(order -> item.getRemarkM().equals(order.getRemarkM())))
-            .collect(Collectors.toList());
+    List<Item> distinctOrders = Objects.requireNonNull(readItems(siteName)).stream()
+        .filter(item -> orders.stream()
+            .filter(order -> !order.getRemark().equals(""))
+            .noneMatch(order -> item.getRemarkM().equals(order.getRemark()) &&
+                item.getCurAmt().equals(order.getTotalPrice()))
+        ).collect(Collectors.toList());
     // 수주 엑셀 생성
     String contractOrderFileName = config.getContractOrderFileName();
-    int size =
-        makeExcel(
-            distinctOrders,
-            Paths.get(config.getTemplatePath(siteName, contractOrderFileName)),
-            Paths.get(config.getOutputPath(siteName, contractOrderFileName)));
+    int size = makeExcel(
+        distinctOrders,
+        Paths.get(config.getTemplatePath(siteName, contractOrderFileName)),
+        Paths.get(config.getOutputPath(siteName, contractOrderFileName))
+    );
 
     config.getConvertResult().get(siteName).setContractOrderSize(size);
 
@@ -150,8 +137,8 @@ public class ExcelConverter {
 
   public void customerConvert(String siteName) throws Exception {
     // 거래처 엑셀 읽기
-    List<Customer> customers =
-        readExcel(config.getTemplatePath("systemever/customer.xml"), config.getCustomerFilePath());
+    List<Customer> customers = readExcel(config.getTemplatePath("systemever/customer.xml"),
+        config.getCustomerFilePath());
 
     // 사이트 데이터 읽기
     List<Item> items = readItems(siteName);
@@ -160,10 +147,7 @@ public class ExcelConverter {
     List<Customer> unregisteredCustomers =
         Objects.requireNonNull(items).stream()
             .filter(item -> !item.getCustName().equals(""))
-            .filter(
-                item ->
-                    customers.stream()
-                        .noneMatch(customer -> item.getCustName().equals(customer.getCustName())))
+            .filter(item -> customers.stream().noneMatch(customer -> item.getCustName().equals(customer.getCustName())))
             .map(item -> new Customer(item.getCustName()))
             .distinct()
             .collect(Collectors.toList());
@@ -175,16 +159,12 @@ public class ExcelConverter {
     List<Customer> unregisteredSuppliers =
         Objects.requireNonNull(items).stream()
             .filter(
-                item ->
-                    customers.stream()
-                        .noneMatch(
-                            customer -> item.getDvPlaceName().equals(customer.getCustName())))
+                item -> customers.stream().noneMatch(customer -> item.getDvPlaceName().equals(customer.getCustName())))
             .map(item -> new Customer(item.getDvPlaceName()))
             .distinct()
             .collect(Collectors.toList());
 
-    log.info(
-        AnsiColorEscapeSequence.MAGENTA.es() + "미등록 공급사 " + unregisteredSuppliers.size() + "건");
+    log.info(AnsiColorEscapeSequence.MAGENTA.es() + "미등록 공급사 " + unregisteredSuppliers.size() + "건");
 
     unregisteredCustomers.addAll(unregisteredSuppliers);
 
@@ -219,15 +199,10 @@ public class ExcelConverter {
   private List<Item> readItems(String siteName) throws Exception {
     List<Item> items;
     String templatePath = config.getTemplatePath(siteName, "convert.xml");
-    if ("cozy".equals(siteName)) { // 코지
-      items = convertHtmlToItem(Paths.get(config.getCozyFilePath()));
-    } else if ("kd".equals(siteName)) { // KD 날짜 형식 변환
+    if ("kd".equals(siteName)) { // KD 날짜 형식 변환
       items = readExcel(templatePath, config.getKdFilePath());
       items.forEach(
-          x ->
-              x.setOrderDate(
-                  LocalDate.parse(x.getOrderDate())
-                      .format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
+          x -> x.setOrderDate(LocalDate.parse(x.getOrderDate()).format(DateTimeFormatter.ofPattern("yyyyMMdd"))));
     } else { // 디디고
       items = readExcel(templatePath, config.getMallFilePath());
     }
@@ -254,6 +229,7 @@ public class ExcelConverter {
     return items;
   }
 
+  /* 코지용 */
   public List<Item> convertHtmlToItem(Path xlsPath) throws IOException {
     Path htmlPath = xlsPath.resolveSibling(xlsPath.getFileName() + ".html");
     if (!Files.exists(htmlPath)) {

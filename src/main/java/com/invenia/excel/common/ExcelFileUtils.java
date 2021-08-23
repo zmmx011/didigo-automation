@@ -7,6 +7,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Comparator;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import net.lingala.zip4j.ZipFile;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -28,6 +29,9 @@ public class ExcelFileUtils {
       if (Files.exists(outputPath)) {
         fileCopy(outputPath, backupPath);
       }
+      String zipPath = backupPath.getParent().resolve(backupPath.getFileName() + ".zip").toString();
+      new ZipFile(zipPath).addFolder(backupPath.toFile());
+      deleteDirectory(backupPath);
     } catch (IOException e) {
       log.error(e.getLocalizedMessage(), e);
       throw e;
@@ -42,11 +46,11 @@ public class ExcelFileUtils {
     Files.walk(source, 1)
         .filter(Files::isRegularFile)
         .filter(
-            path -> path.getFileSystem().getPathMatcher("glob:**.{xls,xlsx,html}").matches(path))
+            path -> path.getFileSystem().getPathMatcher("glob:**.{xls,xlsx,html,png}").matches(path))
         .forEach(
-            x -> {
+            p -> {
               try {
-                Files.move(x, target.resolve(x.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                Files.move(p, target.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
               } catch (IOException e) {
                 log.error(e.getLocalizedMessage(), e);
               }
@@ -75,15 +79,15 @@ public class ExcelFileUtils {
     }
   }
 
-  public void clearPath(Path path) throws IOException {
+  public void deleteDirectory(Path path) throws IOException {
     if (Files.exists(path)) {
-      log.info(path + " 삭제 실행");
       try (Stream<Path> walk = Files.walk(path)) {
         walk.sorted(Comparator.reverseOrder())
             .forEach(
-                x -> {
+                p -> {
                   try {
-                    Files.delete(x);
+                    log.info("{} 삭제", p);
+                    Files.delete(p);
                   } catch (IOException e) {
                     log.error(e.getLocalizedMessage(), e);
                   }
@@ -92,7 +96,27 @@ public class ExcelFileUtils {
         log.error(e.getLocalizedMessage(), e);
         throw e;
       }
-      log.info(path + " 삭제 완료");
+    }
+  }
+
+  public void deleteSubDirectory(Path path) throws IOException {
+    if (Files.exists(path)) {
+      try (Stream<Path> walk = Files.walk(path)) {
+        walk.sorted(Comparator.reverseOrder())
+            .filter(p -> !p.equals(path))
+            .forEach(
+                p -> {
+                  try {
+                    log.info("{} 삭제", p);
+                    Files.delete(p);
+                  } catch (IOException e) {
+                    log.error(e.getLocalizedMessage(), e);
+                  }
+                });
+      } catch (IOException e) {
+        log.error(e.getLocalizedMessage(), e);
+        throw e;
+      }
     }
   }
 }

@@ -32,10 +32,10 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 public class Automation {
 
   private final ConvertConfig config;
+  private final BatchMail mail;
   private ChromeDriver driver;
   private WebDriverWait wait;
   private Actions actions;
-  private final BatchMail mail;
 
   public void setup() throws IOException {
     // WebDriver 경로 설정

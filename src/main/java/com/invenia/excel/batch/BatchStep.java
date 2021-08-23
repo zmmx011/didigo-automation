@@ -122,8 +122,7 @@ public class BatchStep {
               LocalDate toDate = LocalDate.parse(toDateStr);
               try {
                 if (batchConfig.getRunKd()) {
-                }
-                if (batchConfig.getRunCozy()) {
+                  automation.runKdDownload(fromDate, toDate, batchConfig.getKdWebUrl());
                 }
                 if (batchConfig.getRunMall()) {
                   automation.runMallDownload(fromDate, toDate, batchConfig.getMallWebUrl());
@@ -200,14 +199,10 @@ public class BatchStep {
         .build();
   }
 
-  private RepeatStatus convertRunCheck(
-      ThrowsBiConsumer<ExcelConverter, String> func, StepContribution contribution) {
+  private RepeatStatus convertRunCheck(ThrowsBiConsumer<ExcelConverter, String> func, StepContribution contribution) {
     try {
       if (batchConfig.getRunKd()) {
         func.accept(excelConverter, "kd");
-      }
-      if (batchConfig.getRunCozy()) {
-        func.accept(excelConverter, "cozy");
       }
       if (batchConfig.getRunMall()) {
         func.accept(excelConverter, "mall");
@@ -219,14 +214,10 @@ public class BatchStep {
     return RepeatStatus.FINISHED;
   }
 
-  private RepeatStatus automationRunCheck(
-      ThrowsBiConsumer<Automation, String> func, StepContribution contribution) {
+  private RepeatStatus automationRunCheck(ThrowsBiConsumer<Automation, String> func, StepContribution contribution) {
     try {
       if (batchConfig.getRunKd()) {
         func.accept(automation, "kd");
-      }
-      if (batchConfig.getRunCozy()) {
-        func.accept(automation, "cozy");
       }
       if (batchConfig.getRunMall()) {
         func.accept(automation, "mall");

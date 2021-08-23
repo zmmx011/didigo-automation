@@ -169,8 +169,8 @@ public class BatchJob {
             Paths.get(config.getDownloadPath()),
             Paths.get(config.getOutputPath())
         );
-        excelFileUtils.clearPath(Paths.get(config.getOutputPath()));
-        excelFileUtils.clearPath(Paths.get(com.codeborne.selenide.Configuration.downloadsFolder));
+        excelFileUtils.deleteSubDirectory(Paths.get(config.getOutputPath()));
+        excelFileUtils.deleteSubDirectory(Paths.get(com.codeborne.selenide.Configuration.downloadsFolder));
       } catch (IOException e) {
         log.error(e.getLocalizedMessage(), e);
       } finally {

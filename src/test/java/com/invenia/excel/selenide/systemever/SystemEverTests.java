@@ -56,15 +56,6 @@ public class SystemEverTests {
     Selenide.closeWebDriver();
   }
 
-  @AfterEach
-  public void closeTab() throws InterruptedException {
-    main.tabCloseButton.click();
-    Thread.sleep(2000);
-    if (main.msgBtnOk.isDisplayed()) {
-      main.msgBtnOk.click();
-    }
-  }
-
   public static void login() {
     LoginPage page = new LoginPage();
     Selenide.open("https://mfg.systemevererp.com/");
@@ -74,6 +65,14 @@ public class SystemEverTests {
     page.loginBtn.click();
   }
 
+  @AfterEach
+  public void closeTab() throws InterruptedException {
+    main.tabCloseButton.click();
+    Thread.sleep(2000);
+    if (main.msgBtnOk.isDisplayed()) {
+      main.msgBtnOk.click();
+    }
+  }
 
   @DisplayName("품목 다운로드")
   @Order(1)
