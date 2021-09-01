@@ -7,9 +7,6 @@ import com.invenia.excel.converter.dto.Customer;
 import com.invenia.excel.converter.dto.Item;
 import com.invenia.excel.converter.dto.ItemCode;
 import com.invenia.excel.converter.dto.Price;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -75,16 +72,11 @@ public class ExcelConverter {
 
     config.getConvertResult().get(siteName).setItemCodeSize(itemCodeSize);
 
-    // 클립보드 초기화
-    StringSelection clipboardData = new StringSelection("");
-    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-    clipboard.setContents(clipboardData, null);
-
     // 단가 엑셀 읽기
     List<Price> prices = readExcel(config.getTemplatePath("systemever/price.xml"), config.getPriceFilePath());
 
     // 단가 중복 제거
-    String filteredPrice = items.stream()
+    List<Item> filteredPrices = items.stream()
         .distinct()
         .filter(item -> !Objects.equals(item.getPrice(),
             prices.stream().parallel()
@@ -93,6 +85,16 @@ public class ExcelConverter {
                 .orElseGet(Price::new)
                 .getPrice())
         )
+        .collect(Collectors.toList());
+
+    // 품목 엑셀 생성
+    String itemPriceFileName = config.getItemPriceFileName();
+    int itemPriceSize = makeExcel(filteredPrices,
+        Paths.get(config.getTemplatePath(siteName, itemPriceFileName)),
+        Paths.get(config.getOutputPath(siteName, itemPriceFileName))
+    );
+
+    String itemPriceData = filteredPrices.stream()
         .map(item -> "\t"
             + item.getItemNo()
             + "\t"
@@ -103,11 +105,8 @@ public class ExcelConverter {
             + LocalDate.now())
         .collect(Collectors.joining("\r\n"));
 
-    clipboard.setContents(new StringSelection(filteredPrice), null);
-
-    config.getConvertResult().get(siteName)
-        .setItemPriceSize(filteredPrice.chars().parallel().filter(c -> c == '\n').count());
-    config.getConvertResult().get(siteName).setItemPriceData(filteredPrice);
+    config.getConvertResult().get(siteName).setItemPriceSize(itemPriceSize);
+    config.getConvertResult().get(siteName).setItemPriceData(itemPriceData);
   }
 
   public void contractOrderConvert(String siteName) throws Exception {
