@@ -89,7 +89,7 @@ public class BatchMail {
   public void sendUnregisteredCustomerMail(String filePath, int size) {
     log.info("미등록 거래처 메일 발송 시작");
 
-    String htmlPath = "mail/배치 실패.html";
+    String htmlPath = "mail/미등록 거래처.html";
     ClassPathResource htmlResource = new ClassPathResource(htmlPath);
 
     if (!htmlResource.exists()) {
